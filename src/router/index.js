@@ -32,12 +32,29 @@ Vue.mixin({
       drawer: true
     };
   },
-  methods: {},
+  methods: {
+    notifyRed(text) {
+      this.$q.notify({
+        icon: "fas fa-exclamation-circle",
+        message: text,
+        color: "negative",
+        timeout: 1000
+      })
+    },
+    notifyGreen(text) {
+      this.$q.notify({
+        icon: "fas fa-exclamation-circle",
+        message: text,
+        color: "secondary",
+        timeout: 1000,
+      });
+    }
+  },
   mounted() {},
   watch: {}
 });
 
-export default function(/* { store, ssrContext } */) {
+export default function ( /* { store, ssrContext } */ ) {
   const Router = new VueRouter({
     scrollBehavior: () => ({
       x: 0,

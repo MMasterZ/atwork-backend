@@ -134,13 +134,7 @@ export default {
   methods: {
     loginBtn() {
       if (this.username == "" || this.password == "") {
-        this.$q.notify({
-          icon: "fas fa-exclamation-circle",
-          message: "เบอร์โทรศัพท์ / รหัสผ่านไม่ถูกต้อง",
-          color: "negative",
-          position: "bottom",
-          timeout: 1000
-        });
+        this.notifyRed("เบอร์โทรศัพท์ / รหัสผ่านไม่ถูกต้อง");
       } else {
         this.isCheckLogin = true;
         this.username = this.username.toLowerCase();
@@ -164,13 +158,7 @@ export default {
               });
             } else {
               this.isCheckLogin = false;
-              this.$q.notify({
-                icon: "fas fa-exclamation-circle",
-                message: "เบอร์โทรศัพท์ / รหัสผ่านไม่ถูกต้อง",
-                position: "bottom",
-                color: "negative",
-                timeout: 1000
-              });
+              this.notifyRed("เบอร์โทรศัพท์ / รหัสผ่านไม่ถูกต้อง");
             }
           });
       }
