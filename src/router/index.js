@@ -57,10 +57,18 @@ Vue.mixin({
     },
     loadingHide() {
       this.$q.loading.hide()
+    },
+    async loadTime() {
+      let api = "https://api.winner-english.com/data/api/gettime.php";
+      let response = await axios.get(api);
+      let date = response.data[0].date;
+      let microtime = response.data[0].microtime;
+
+      return microtime
+
     }
   },
   mounted() {},
-  watch: {}
 });
 
 export default function ( /* { store, ssrContext } */ ) {
