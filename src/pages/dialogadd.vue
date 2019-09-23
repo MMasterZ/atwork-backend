@@ -509,13 +509,8 @@ export default {
             .doc(key)
             .delete()
             .then(() => {
-              this.$q.notify({
-                icon: "fas fa-check-circle",
-                message: "ลบข้อมูลเรียบร้อย",
-                color: "secondary",
-                position: "bottom",
-                timeout: 1000
-              });
+              this.notifyRed("ลบข้อมูลเรียบร้อย");
+
               this.loadDialog();
             });
         });
@@ -536,29 +531,16 @@ export default {
         this.$refs.situationEng.hasError ||
         this.$refs.situationThai.hasError
       ) {
-        this.$q.notify({
-          message: "กรุณากรอกข้อมูลให้ครบถ้วน",
-          color: "negative",
-          position: "bottom",
-          timeout: 1000,
-          icon: "fas fa-exclamation-circle"
-        });
+        this.notifyRed("กรุณากรอกข้อมูลให้ครบถ้วน");
         return;
       }
 
       if (this.situation.positionSelec.length == 0) {
-        this.$q.notify({
-          message: "กรุณาเลือกตำแหน่งอย่างน้อย 1 ตำแหน่ง",
-          color: "negative",
-          position: "bottom",
-          timeout: 1000,
-          icon: "fas fa-exclamation-circle"
-        });
+        this.notifyRed("กรุณาเลือกตำแหน่งอย่างน้อย 1 ตำแหน่ง");
         return;
       }
 
       // add ข้อมูลเข้าฐานข้อมูล
-
       this.isVdoMode = true;
       this.isSpeakerMode = true;
       if (this.dockey.length) {
@@ -642,13 +624,7 @@ export default {
       this.$refs.speakerThai.validate(); // ช่องชื่อผู้สนทนาภาษาไทย
 
       if (this.$refs.speakerEng.hasError || this.$refs.speakerThai.hasError) {
-        this.$q.notify({
-          message: "กรุณากรอกข้อมูลให้ครบถ้วน",
-          color: "negative",
-          position: "bottom",
-          timeout: 1000,
-          icon: "fas fa-exclamation-circle"
-        });
+        this.notifyRed("กรุณากรอกข้อมูลให้ครบถ้วน");
         return;
       }
 
@@ -663,13 +639,7 @@ export default {
           .doc(this.speakerEditKey)
           .set(this.speaker)
           .then(() => {
-            this.$q.notify({
-              icon: "fas fa-check-circle",
-              message: "บันทึกข้อมูลเรียบร้อย",
-              color: "secondary",
-              position: "bottom",
-              timeout: 1000
-            });
+            this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
             this.speaker.speakerEng = "";
             this.speaker.speakerThai = "";
             this.loadSpeaker();
@@ -685,13 +655,7 @@ export default {
           .add(this.speaker)
           .then(() => {
             this.isSentenMode = true;
-            this.$q.notify({
-              icon: "fas fa-check-circle",
-              message: "บันทึกข้อมูลเรียบร้อย",
-              color: "secondary",
-              position: "bottom",
-              timeout: 1000
-            });
+            this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
             this.speaker.speakerEng = "";
             this.speaker.speakerThai = "";
 
@@ -718,6 +682,7 @@ export default {
               let key = { key: data.id };
               let final = { ...key, ...data.data() };
               this.speakerData.push(final);
+
               //สำหรับหน้าบทสนทนา
               let data2 = {
                 label: data.data().speakerEng + " - " + data.data().speakerThai,
@@ -757,13 +722,7 @@ export default {
             .doc(key)
             .delete()
             .then(() => {
-              this.$q.notify({
-                icon: "fas fa-check-circle",
-                message: "ลบข้อมูลเรียบร้อย",
-                color: "secondary",
-                position: "bottom",
-                timeout: 1000
-              });
+              this.notifyRed("ลบข้อมูลเรียบร้อย");
               this.loadSpeaker();
             });
         });
@@ -804,13 +763,7 @@ export default {
         this.$refs.sentenceEng.hasError ||
         this.$refs.sentenceThai.hasError
       ) {
-        this.$q.notify({
-          message: "กรุณากรอกข้อมูลให้ครบถ้วน",
-          color: "negative",
-          position: "bottom",
-          timeout: 1000,
-          icon: "fas fa-exclamation-circle"
-        });
+        this.notifyRed("กรุณากรอกข้อมูลให้ครบถ้วน");
         return;
       }
 
@@ -853,14 +806,7 @@ export default {
                 url: ""
               });
           }
-
-          this.$q.notify({
-            message: "บันทึกข้อมูลเรียบร้อย",
-            color: "secondary",
-            position: "top",
-            timeout: 1000
-          });
-
+          this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
           this.dialog.orderId = "";
           this.dialog.sentenceEng = "";
           this.dialog.sentenceThai = "";
@@ -931,7 +877,7 @@ export default {
       this.$router.push("/dialog");
     },
 
-    //***********select All ในหน้าสถานการณ์ */
+    //*********** Select All ในหน้าสถานการณ์ */
     selecisCheckAll() {
       if (this.isCheckAll) {
         for (let i = 0; i < this.positionData.length; i++) {

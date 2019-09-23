@@ -46,6 +46,7 @@
                 outlined
                 v-model="positionID"
                 :options="optionsPosition"
+                @input="loadDialog()"
                 label="ตำแหน่ง"
                 emit-value
                 map-options
@@ -122,6 +123,7 @@
                 outlined
                 v-model="positionIDServer"
                 :options="optionsPositionServer"
+                @input="loadDialogServer()"
                 label="ตำแหน่ง"
                 emit-value
                 map-options
@@ -214,6 +216,7 @@ export default {
     };
   },
   methods: {
+    // ซิงค์ข้อมูลบน draft ไปยัง server
     async syncBtn() {
       console.log("test");
       //update server time
@@ -222,6 +225,7 @@ export default {
       let date = response.data[0].date;
       let microtime = response.data[0].microtime;
 
+      this.loadingShow();
       // delete server
       await db
         .collection("Dialog")
@@ -238,12 +242,14 @@ export default {
           });
         });
 
+      // สร้างเวลาตอน ซิงค์ข้อมูล
       db.collection("Dialog")
         .doc("server")
         .set({
           saveServer: microtime
         });
 
+      // ซิงค์ข้อมูล draft ไปยัง server
       await db
         .collection("Dialog")
         .doc("draft")
@@ -290,24 +296,17 @@ export default {
                         .doc(data2.id)
                         .collection("speaker")
                         .doc(data4.id)
-                        .set(data4.data());
+                        .set(data4.data())
+                        .then(() => {
+                          this.loadingHide();
+                        });
                     });
                   });
               });
           });
         });
-
-      //delete all record from server collection
-      // db.collection("Dialog")
-      //   .doc("server")
-      //   .collection("data")
-      //   .get()
-      //   .then(doc => {
-      //     doc.forEach(data => {
-      //       console.log(data.id);
-      //     });
-      //   });
     },
+    // ลบข้อมูล VDO ทั้งหมด
     deleteBtn(key) {
       this.$q
         .dialog({
@@ -317,6 +316,7 @@ export default {
           persistent: true
         })
         .onOk(() => {
+          this.loadingShow();
           let dbx = db
             .collection("Dialog")
             .doc("draft")
@@ -344,35 +344,29 @@ export default {
                       .delete();
                   });
                   dbx.delete().then(() => {
-                    this.$q.notify({
-                      icon: "fas fa-check-circle",
-                      message: "ลบข้อมูลเรียบร้อย",
-                      color: "secondary",
-                      position: "bottom",
-                      timeout: 1000
-                    });
+                    this.notifyRed("ลบข้อมูลเรียบร้อย");
                     this.loadDialog();
+                    this.loadingHide();
                   });
                 });
             });
-
-          // .delete()
-          // .then(() => {
-          //   this.loadDialog();
-          // });
         });
     },
+    // ไปยังหน้าแก้ไขไฟล์ VDO ตาม Key
     editBtn(key) {
       this.$router.push("/dialog/edit/" + key + "/1");
     },
+    // ไปยังหน้า Add VDO ใหม่
     addBtn() {
       this.$router.push("/dialog/add");
     },
+    // ไปยังหน้า ปริ้น รายการต่างๆของ VDO
     printBtn(key) {
       alert("พักตรงนี้ดีกว่า... เหนื่อยจุงเบย");
     },
+    // โหลดข้อมูล ตำแหน่ง ของฝั่ง draft
     loadPosition() {
-      this.$q.loading.show();
+      this.loadingShow();
       db.collection("Position")
         .where("status", "==", true)
         .get()
@@ -382,8 +376,7 @@ export default {
               label: element.data().name,
               value: element.id
             };
-            // let final = { ...dataId, ...data };
-            // console.log(data);
+
             this.optionsPosition.push(data);
             this.optionsPosition.sort((a, b) => {
               return a.label > b.label ? 1 : -1;
@@ -394,8 +387,8 @@ export default {
           this.loadDialog();
         });
     },
+    // โหลดข้อมูล บทสนทนา จากฝั่ง draft
     loadDialog() {
-      // this.$q.loading.show();
       this.dialogList = [];
       db.collection("Dialog")
         .doc("draft")
@@ -408,12 +401,13 @@ export default {
             let final = { ...dialogKey, ...element.data() };
 
             this.dialogList.push(final);
-            // this.$q.loading.hide();
+            this.loadingHide();
           });
         });
     },
+    // โหลดข้อมูล ตำแหน่ง ของฝั่ง server
     loadPositionServer() {
-      this.$q.loading.show();
+      this.loadingShow();
       db.collection("Position")
         .where("status", "==", true)
         .get()
@@ -423,8 +417,7 @@ export default {
               label: element.data().name,
               value: element.id
             };
-            // let final = { ...dataId, ...data };
-            // console.log(data);
+
             this.optionsPositionServer.push(data);
             this.optionsPositionServer.sort((a, b) => {
               return a.label > b.label ? 1 : -1;
@@ -435,9 +428,13 @@ export default {
           this.loadDialogServer();
         });
     },
+    // โหลดข้อมูล บทสนทนา จากฝั่ง server
     loadDialogServer() {
       this.dialogList = [];
       db.collection("Dialog")
+        .doc("server")
+        .collection("data")
+        .where("positionSelec", "array-contains", this.positionIDServer)
         .get()
         .then(doc => {
           doc.forEach(element => {
@@ -445,6 +442,7 @@ export default {
             let final = { ...dialogKey, ...element.data() };
 
             this.dialogListServer.push(final);
+            this.loadingHide();
             // this.$q.loading.hide();
           });
         });
