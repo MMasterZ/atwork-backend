@@ -83,10 +83,7 @@ export default {
     };
   },
   methods: {
-    editBtn(key) {
-      this.$router.push("/position/edit/" + key);
-    },
-
+    // ปุมการเปิดแผนก
     powerOn(key) {
       this.mode = false;
 
@@ -95,14 +92,9 @@ export default {
         .update({
           status: false
         });
-      this.$q.notify({
-        icon: "fas fa-exclamation-circle",
-        message: "ปิดการใช้งาน",
-        color: "negative",
-        position: "bottom",
-        timeout: 1000
-      });
+      this.notifyRed("ปิดการใช้งาน");
     },
+    // ปุ่มการปิดแผนก
     powerOff(key) {
       this.mode = true;
 
@@ -111,26 +103,23 @@ export default {
         .update({
           status: true
         });
-      this.$q.notify({
-        icon: "fas fa-check-circle",
-        message: "เปิดการใช้งาน",
-        color: "secondary",
-        position: "bottom",
-        timeout: 1000
-      });
+      this.notifyGreen("เปิดการใช้งาน");
 
       this.mode = true;
     },
+    // ปุ่มเพิ่มข้อมูล
     addBtn() {
       this.$router.push("/position/add");
     },
-    loadProsition() {
-      this.$q.loading.show({
-        delay: 400 // ms
-      });
+    // การแก้ไขข้อมูล
+    editBtn(key) {
+      this.$router.push("/position/edit/" + key);
+    },
+    // การโหลดตำแหน่งออกมาโชว์
+    loadPosition() {
+      this.loadingShow();
       db.collection("Position").onSnapshot(doc => {
         this.prositionList = [];
-
         doc.forEach(element => {
           let dataKey = {
             key: element.id
@@ -139,7 +128,7 @@ export default {
             ...dataKey,
             ...element.data()
           };
-          this.$q.loading.hide();
+          this.loadingHide();
           this.prositionList.push(final);
           this.prositionList.sort((a, b) => {
             return a.orderid - b.orderid;
@@ -149,7 +138,7 @@ export default {
     }
   },
   mounted() {
-    this.loadProsition();
+    this.loadPosition();
   }
 };
 </script>

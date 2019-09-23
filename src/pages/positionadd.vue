@@ -119,10 +119,9 @@ export default {
     };
   },
   methods: {
+    // โหลดข้อมูลของ ตำแหน่ง ลำดับ และ สถานการ์ ของ หน้าแก้ไข
     loadData() {
-      this.$q.loading.show({
-        delay: 400 // ms
-      });
+      this.loadingShow();
       db.collection("Position")
         .doc(this.$route.params.key)
         .get()
@@ -149,22 +148,16 @@ export default {
                 return a.name - b.name ? -1 : 1;
               });
               this.situationArry = newSituation;
-              this.$q.loading.hide();
+              this.loadingHide();
             });
         });
     },
+    // ปุ่มลบข้อมูลทั้งหมด หน้าแก้ไข
     deleteBtn() {
       if (this.situationArry.length) {
-        this.$q.notify({
-          icon: "fas fa-exclamation-circle",
-          message: "มีสถานการณ์อยู่ไม่สามารถลบได้",
-          color: "negative",
-          position: "bottom",
-          timeout: 1000
-        });
+        this.notifyRed("มีสถานการณ์อยู่ไม่สามารถลบได้");
         return;
       }
-
       db.collection("CustomerAccounts")
         .where("positionKey", "==", this.$route.params.key)
         .get()
@@ -183,13 +176,7 @@ export default {
                 persistent: true
               })
               .onOk(() => {
-                this.$q.notify({
-                  icon: "fas fa-exclamation-circle",
-                  message: "มีผู้ใช้งานอยู่ไม่สามารลบได้",
-                  color: "negative",
-                  position: "bottom",
-                  timeout: 1000
-                });
+                this.notifyRed("มีผู้ใช้งานอยู่ไม่สามารลบได้");
               });
           } else {
             this.$q
@@ -209,19 +196,13 @@ export default {
                   .doc(this.$route.params.key)
                   .delete();
                 this.$router.push("/position");
-                this.$q.notify({
-                  icon: "fas fa-check-circle",
-                  message: "ลบข้อมูลเรียบร้อย",
-                  color: "secondary",
-                  position: "bottom",
-                  timeout: 1000
-                });
+                this.notifyGreen("ลบข้อมูลเรียบร้อย");
               });
           }
         });
     },
+    // การลบสถานการณ์มีการแจ้งเตือน มีมีผู้ใช้งานอยู่ไหม ถ้ามีให้ลบไม่ได้ ถ้าไม่มีให้ลบได้
     deletelog(index, key) {
-      console.log(index, key);
       if (this.$route.name == "positionedit") {
         this.$q
           .dialog({
@@ -253,28 +234,17 @@ export default {
                     });
                   });
                 this.situationArry.splice(index, 1);
-                this.$q.notify({
-                  icon: "fas fa-check-circle",
-                  message: "ลบข้อมูลเรียบร้อย",
-                  color: "secondary",
-                  position: "bottom",
-                  timeout: 1000
-                });
+                this.notifyGreen("ลบข้อมูลเรียบร้อย");
               });
           });
       } else {
         this.situationArry.splice(index, 1);
       }
     },
+    // การเพื่มข้อมูลของสถานการณ์
     addSituation() {
       if (this.situation.name == "") {
-        this.$q.notify({
-          icon: "fas fa-exclamation-circle",
-          message: "กรุณากรอกชื่อแผนก",
-          color: "negative",
-          position: "bottom",
-          timeout: 1000
-        });
+        this.notifyRed("กรุณากรอกชื่อสถานการณ์");
       } else {
         this.isSituationSeve = false;
         if (this.$route.name == "positionedit") {
@@ -284,13 +254,7 @@ export default {
             .get()
             .then(doc => {
               if (doc.size > 0) {
-                this.$q.notify({
-                  icon: "fas fa-exclamation-circle",
-                  message: "สถานการณ์ช้ำ",
-                  color: "negative",
-                  position: "bottom",
-                  timeout: 1000
-                });
+                this.notifyRed("สถานการณ์ช้ำ");
               } else {
                 let theKey = {
                   positionKey: this.$route.params.key,
@@ -315,13 +279,7 @@ export default {
         } else {
           if (this.situation.name == "") {
             this.isHasSituation = true;
-            this.$q.notify({
-              icon: "fas fa-exclamation-circle",
-              message: "กรุณากรอกสถานการณ์",
-              color: "negative",
-              position: "bottom",
-              timeout: 1000
-            });
+            this.notifyRed("กรุณากรอกสถานการณ์");
           } else {
             this.isSituationSeve = false;
             let dataKey;
@@ -343,13 +301,7 @@ export default {
             if (!checkDup) {
               this.situationArry.push(dataKey);
             } else {
-              this.$q.notify({
-                icon: "fas fa-exclamation-circle",
-                message: "สถานการณ์ช้ำ",
-                color: "negative",
-                position: "bottom",
-                timeout: 1000
-              });
+              this.notifyRed("สถานการณ์ช้ำ");
             }
             this.isSituationSeve = true;
             this.isHasSituation = false;
@@ -358,6 +310,7 @@ export default {
         }
       }
     },
+    // ปุ่มบันทึกเพื่มข้อมูล และ แก้ไขข้อมูล
     seveBtn() {
       this.$refs.isorder.validate();
       this.$refs.isposition.validate();
@@ -366,24 +319,13 @@ export default {
         this.$refs.isposition.hasError ||
         (this.position.orderid == "" && this.position.name == "")
       ) {
-        this.$q.notify({
-          icon: "fas fa-exclamation-circle",
-          message: "กรุณากรอกข้อมูลให้ครบถ้วน",
-          color: "negative",
-          position: "bottom",
-          timeout: 1000
-        });
+        this.notifyRed("กรุณากรอกข้อมูลให้ครบถ้วน");
         return;
       }
+      // การบันทึกแก้ไข
       if (this.situation.name == "" && this.situationArry.length < 1) {
         this.isHasSituation = true;
-        this.$q.notify({
-          icon: "fas fa-exclamation-circle",
-          message: "กรุณากรอกสถานการณ์",
-          color: "negative",
-          position: "bottom",
-          timeout: 1000
-        });
+        this.notifyRed("กรุณากรอกสถานการณ์");
         return;
       } else {
         // else if (this.position.orderid || this.position.name) {
@@ -397,13 +339,7 @@ export default {
             this.textOrderid == this.position.orderid &&
             this.textName == this.position.name
           ) {
-            this.$q.notify({
-              icon: "fas fa-check-circle",
-              message: "บันทึกข้อมูลเรียบร้อย",
-              color: "secondary",
-              position: "bottom",
-              timeout: 1000
-            });
+            this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
             this.$router.push("/position");
           } else if (this.position.orderid || this.position.name) {
             if (this.textOrderid == this.position.orderid) {
@@ -412,24 +348,12 @@ export default {
                 .get()
                 .then(doc => {
                   if (doc.size > 0) {
-                    this.$q.notify({
-                      icon: "fas fa-exclamation-circle",
-                      message: "กรุณาตรวจสอบข้อมูลช้ำ",
-                      color: "negative",
-                      position: "bottom",
-                      timeout: 1000
-                    });
+                    this.notifyRed("กรุณาตรวจสอบข้อมูลช้ำ");
                   } else {
                     db.collection("Position")
                       .doc(this.$route.params.key)
                       .set(this.position);
-                    this.$q.notify({
-                      icon: "fas fa-check-circle",
-                      message: "บันทึกข้อมูลเรียบร้อย",
-                      color: "secondary",
-                      position: "bottom",
-                      timeout: 1000
-                    });
+                    this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
                     this.$router.push("/position");
                   }
                 });
@@ -439,24 +363,12 @@ export default {
                 .get()
                 .then(doc => {
                   if (doc.size > 0) {
-                    this.$q.notify({
-                      icon: "fas fa-exclamation-circle",
-                      message: "กรุณาตรวจสอบข้อมูลช้ำ",
-                      color: "negative",
-                      position: "bottom",
-                      timeout: 1000
-                    });
+                    this.notifyRed("กรุณาตรวจสอบข้อมูลช้ำ");
                   } else {
                     db.collection("Position")
                       .doc(this.$route.params.key)
                       .set(this.position);
-                    this.$q.notify({
-                      icon: "fas fa-check-circle",
-                      message: "บันทึกข้อมูลเรียบร้อย",
-                      color: "secondary",
-                      position: "bottom",
-                      timeout: 1000
-                    });
+                    this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
                     this.isSeveBtn = true;
                     this.$router.push("/position");
                   }
@@ -464,32 +376,21 @@ export default {
             }
           }
         } else {
+          // การบันทึกเพิ่ม
           if (this.position.orderid && this.position.name) {
             db.collection("Position")
               .where("orderid", "==", this.position.orderid)
               .get()
               .then(doc => {
                 if (doc.size > 0) {
-                  this.$q.notify({
-                    icon: "fas fa-exclamation-circle",
-                    message: "กรุณาตรวจสอบข้อมูลช้ำ",
-                    color: "negative",
-                    position: "bottom",
-                    timeout: 1000
-                  });
+                  this.notifyRed("กรุณาตรวจสอบข้อมูลช้ำ");
                 } else {
                   if (
                     this.situation.name == "" &&
                     this.situationArry.length < 1
                   ) {
                     this.isHasSituation = true;
-                    this.$q.notify({
-                      icon: "fas fa-exclamation-circle",
-                      message: "กรุณากรอกสถานการณ์",
-                      color: "negative",
-                      position: "bottom",
-                      timeout: 1000
-                    });
+                    this.notifyRed("กรุณากรอกสถานการณ์");
                   } else {
                     this.isSeveBtn = false;
 
@@ -500,13 +401,7 @@ export default {
                         .then(doc => {
                           if (doc.size > 0) {
                             this.isSeveBtn = true;
-                            this.$q.notify({
-                              icon: "fas fa-exclamation-circle",
-                              message: "กรุณาตรวจสอบข้อมูลช้ำ",
-                              color: "negative",
-                              position: "bottom",
-                              timeout: 1000
-                            });
+                            this.notifyRed("กรุณาตรวจสอบข้อมูลช้ำ");
                             setTimeout(() => {}, 1500);
                           } else {
                             if (this.situationArry.length > 0) {
@@ -526,13 +421,7 @@ export default {
                                   this.$router.push("/position");
                                   this.isHasSituation = false;
                                   this.isSeveBtn = true;
-                                  this.$q.notify({
-                                    icon: "fas fa-check-circle",
-                                    message: "บันทึกข้อมูลเรียบร้อย",
-                                    color: "secondary",
-                                    position: "bottom",
-                                    timeout: 1000
-                                  });
+                                  this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
                                 });
                             }
                           }
