@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "winneratwork-818f5"
+  },
+  "targets": {
+    "winneratwork-818f5": {
+      "hosting": {
+        "atwork": [
+          "winner-english"
+        ]
+      }
+    }
+  }
+}
