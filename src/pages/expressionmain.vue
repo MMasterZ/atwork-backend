@@ -329,10 +329,10 @@ export default {
             });
           });
           this.obj.positions = this.$q.localStorage.getItem("currentposition");
+
           this.loadData();
         });
     },
-
     playsound(audio) {
       if (this.currentURL != "") {
         this.currentURL.pause();

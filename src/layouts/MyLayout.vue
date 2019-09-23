@@ -29,11 +29,11 @@
         <q-toolbar-title class="text-h6" v-if="this.$route.name == 'dialogmain'">บทสนทนา</q-toolbar-title>
         <q-toolbar-title class="text-h6" v-if="this.$route.name == 'dialogadd'">
           <router-link class="text-white text-weight-light" to="/dialog">บทสนทนา</router-link>&nbsp;>
-          เพิ่มบทสนทนา
+          จัดการบทสนทนา
         </q-toolbar-title>
         <q-toolbar-title class="text-h6" v-if="this.$route.name == 'dialogedit'">
           <router-link class="text-white text-weight-light" to="/dialog">บทสนทนา</router-link>&nbsp;>
-          แก้ไขบทสนทนา
+          จัดการบทสนทนา
         </q-toolbar-title>
 
         <!-- เมนู writing -->

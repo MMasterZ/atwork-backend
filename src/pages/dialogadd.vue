@@ -3,8 +3,8 @@
     <div class="my-border-left bg-blue-grey-10 q-py-md">
       <q-toolbar class="text-primary">
         <q-space />
-        <q-toolbar-title class="col-10 mobile-only text-white text-h5" align="center">{{titleName}}</q-toolbar-title>
-        <q-toolbar-title class="col-11 desktop-only text-white text-h4" align="center">{{titleName}}</q-toolbar-title>
+        <q-toolbar-title class="col-10 mobile-only text-white text-h5" align="center">จัดการบทสนทนา</q-toolbar-title>
+        <q-toolbar-title class="col-11 desktop-only text-white text-h4" align="center">จัดการบทสนทนา</q-toolbar-title>
         <q-space />
       </q-toolbar>
     </div>
@@ -21,48 +21,16 @@
             indicator-color="secondary"
           >
             <q-tab name="situation" label="สถานการณ์" />
+            <q-tab name="vdo" label="วีดีโอ" :disable="!isVdoMode" />
             <q-tab name="speaker" :disable="!isSpeakerMode" label="ผู้สนทนา" />
             <q-tab name="dialog" :disable="!isSentenMode" label="บทสนทนา" />
           </q-tabs>
         </div>
 
         <q-tab-panels v-model="tabShow" animated>
-          <!-- สถานการณ์การ -->
+          <!-- สถานการณ์ -->
           <q-tab-panel name="situation">
             <div class="row">
-              <div class="q-pb-md col-12" align="center">
-                <div
-                  style="border: 1px solid #A4A8AB; width:90%; max-width: 400px; "
-                  class="relative-position"
-                >
-                  <!-- show VDO -->
-                  <q-icon
-                    name="fas fa-video-slash"
-                    style="font-size: 70px; padding: 100px;"
-                    v-show="!isVdo"
-                  ></q-icon>
-                  <video
-                    :src="situation.url"
-                    controls
-                    style="width:100%"
-                    class="q-px-sm q-pt-sm"
-                    v-show="isVdo"
-                  />
-                  <!-- input VDO -->
-                  <q-input
-                    class="q-px-sm q-pb-sm z-top"
-                    @input="val => { addVdoBtn(val) }"
-                    filled
-                    type="file"
-                    color="grey-2"
-                    v-show="!isVdo"
-                  />
-                  <!-- delete btn  -->
-                  <div class="q-px-sm q-pb-sm" v-show="isVdo">
-                    <q-btn style="width: 120px" @click="delVdoBtn()">ลบวีดีโอ</q-btn>
-                  </div>
-                </div>
-              </div>
               <div class="q-pb-md col-12">
                 <q-input
                   outlined
@@ -104,8 +72,8 @@
                     v-model="situation.positionSelec"
                     @input="checkBoxChanged()"
                     color="blue-grey-10"
+                    :label="positionData[index].name"
                   />
-                  <span>{{positionData[index].name}}</span>
                 </div>
               </div>
 
@@ -120,7 +88,57 @@
             </div>
           </q-tab-panel>
 
-          <!-- ผู้สนทนา -->
+          <!-- vdo -->
+          <q-tab-panel name="vdo">
+            <div class="q-pb-md col-12" align="center">
+              <div
+                style="border: 1px solid #A4A8AB; width:90%; max-width: 400px; "
+                class="relative-position"
+              >
+                <!-- show VDO -->
+                <q-icon
+                  name="fas fa-video-slash"
+                  style="font-size: 70px; padding: 100px;"
+                  v-show="!isUploadComplete"
+                ></q-icon>
+                <video
+                  :src="situation.url"
+                  controls
+                  style="width:100%"
+                  class="q-px-sm q-pt-sm"
+                  v-show="isUploadComplete"
+                />
+                <!-- input VDO -->
+                <div v-show="!isUploadComplete">
+                  <table>
+                    <tr>
+                      <td style="width: 50px;">
+                        <div class="q-pl-md text-body1 text-grey-7 q-pr-md">วีดีโอ</div>
+                      </td>
+                      <td>
+                        <q-input
+                          class="q-px-sm q-pt-md"
+                          @input="saveVdo($event)"
+                          type="file"
+                          borderless
+                          style="height:50px;"
+                          accept=".mp4"
+                          ref="fileInput"
+                        />
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+
+                <!-- delete btn  -->
+                <div class="q-px-sm q-pb-sm" v-show="isUploadComplete">
+                  <q-btn style="width: 120px" @click="delVdoBtn()">ลบวีดีโอ</q-btn>
+                </div>
+              </div>
+            </div>
+          </q-tab-panel>
+
+          <!--******************** ผู้สนทนา -->
           <q-tab-panel name="speaker">
             <div class="row">
               <div class="q-pr-md-sm col-md-6 col-xs-12">
@@ -142,7 +160,18 @@
                 />
               </div>
               <div class="q-pt-lg q-pb-md col-12" align="center">
-                <q-btn style="width:120px;" class="q-mr-sm" @click="backBtn()">ยกเลิก</q-btn>
+                <q-btn
+                  style="width:120px;"
+                  class="q-mr-sm"
+                  @click="backBtn()"
+                  v-show="!isSpeakerEditMode"
+                >ยกเลิก</q-btn>
+                <q-btn
+                  style="width:120px;"
+                  class="q-mr-sm"
+                  @click="backBtn2()"
+                  v-show="isSpeakerEditMode"
+                >ยกเลิก</q-btn>
                 <q-btn
                   style="width:120px;"
                   class="bg-secondary text-white q-ml-sm"
@@ -151,17 +180,22 @@
               </div>
 
               <!-- start table -->
-              <div class="col-12">
+              <div class="col-12" v-show="!isSpeakerEditMode">
                 <q-table :data="speakerData" :columns="columns">
                   <template v-slot:body="props">
                     <q-tr :props="props">
                       <q-td key="nameEng" :props="props">{{ props.row.speakerEng }}</q-td>
                       <q-td key="nameThai" :props="props">{{ props.row.speakerThai }}</q-td>
                       <q-td key="delete" :props="props">
-                        <q-btn round flat icon="fas fa-trash-alt" />
+                        <q-btn
+                          round
+                          flat
+                          icon="fas fa-trash-alt"
+                          @click="deleteSpeaker(props.row.key)"
+                        />
                       </q-td>
                       <q-td key="edit" :props="props">
-                        <q-btn round flat icon="fas fa-edit" />
+                        <q-btn round flat icon="fas fa-edit" @click="editSpeaker(props.row.key)" />
                       </q-td>
                     </q-tr>
                   </template>
@@ -174,7 +208,7 @@
           <!-- บทสนทนา -->
           <q-tab-panel name="dialog">
             <div class="row">
-              <div class="q-pr-md-sm col-md-6 col-xs-12">
+              <div class="q-pr-md-sm col-md-4 col-xs-12">
                 <q-input
                   outlined
                   v-model="dialog.orderId"
@@ -184,7 +218,7 @@
                   ref="dialogOrder"
                 />
               </div>
-              <div class="q-pl-md-sm col-md-6 col-xs-12">
+              <div class="q-pr-md-sm col-md-4 col-xs-12">
                 <q-select
                   outlined
                   v-model="dialog.speakerKey"
@@ -194,6 +228,55 @@
                   label="ผู้สนทนา"
                 />
               </div>
+
+              <div class="col-md-4 col-xs-12">
+                <div style="height: 57px;  border: 1px solid #bdbdbd" class="rounded-borders">
+                  <div v-if="!isFile" class="q-my-sm">
+                    <table>
+                      <tr>
+                        <td style="width: 50px;">
+                          <div class="q-pt-xs q-pl-sm text-body1 text-grey-7 q-pr-md">เสียง</div>
+                        </td>
+                        <td>
+                          <q-input
+                            borderless
+                            :type=" 'file'"
+                            @input="value => {file= value}"
+                            style="height:30px;"
+                            class="q-pt-lg"
+                            accept=".mp3"
+                            ref="fileInput"
+                          ></q-input>
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
+
+                  <div v-if="isFile">
+                    <div class="row justify-between">
+                      <div class="q-my-xs q-pt-sm text-secondary">
+                        <div class="text-body1 q-pt-xs q-px-sm">
+                          <span class="text-grey-7">เสียง</span>
+                          <q-icon class="q-px-md" name="fas  fa-play" />
+                          <u @click="playsound(dialog.url)" class="cursor-pointer">ฟังเสียงคำศัพท์</u>
+                        </div>
+                      </div>
+                      <div>
+                        <q-btn
+                          class="q-my-sm text-body1 text-blue-grey-10"
+                          flat
+                          @click="deleteSoundBtn()"
+                          round
+                          push
+                          icon="fas fa-trash-alt"
+                          size="md"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div class="q-py-md col-md-12 col-xs-12">
                 <q-input
                   outlined
@@ -212,7 +295,7 @@
                   ref="sentenceThai"
                 />
               </div>
-              <div class="q-py-md col-12" align="center">
+              <div class="q-py-md col-12" align="center" v-show="!editDialogMode">
                 <q-btn style="width:120px;" class="q-mr-sm" @click="backBtn()">ยกเลิก</q-btn>
                 <q-btn
                   style="width:120px;"
@@ -220,14 +303,22 @@
                   @click="saveDialogBtn()"
                 >บันทึก</q-btn>
               </div>
+              <div class="q-py-md col-12" align="center" v-show="editDialogMode">
+                <q-btn style="width:120px;" class="q-mr-sm" @click="backeditBtn()">ยกเลิก</q-btn>
+                <q-btn
+                  style="width:120px;"
+                  class="bg-secondary text-white q-ml-sm"
+                  @click="saveEditDialogBtn()"
+                >บันทึก</q-btn>
+              </div>
 
               <!-- start table -->
-              <div class="row relative-position" style="border: 1px solid #BDBDBD; width:100%">
+              <div class="row relative-position" style="width:100%" v-show="!editDialogMode">
                 <div style="width: 100%">
                   <div
-                    class="q-ma-md row text-subtitle1"
+                    class="q-my-md row text-subtitle1"
                     style="border: 1px solid #BDBDBD; "
-                    v-for="(i,index) in sentenseData "
+                    v-for="(i,index) in sentenceData "
                     :key="index"
                   >
                     <div
@@ -235,24 +326,40 @@
                       style="width: 70px; "
                     >{{i.orderId}}</div>
                     <div
+                      class="bg-blue-grey-2 text-white row justify-center text-center items-center"
+                      style="width: 70px; "
+                    >
+                      <q-btn
+                        :disable="i.url==''"
+                        @click="playsound(i.url)"
+                        flat
+                        style="width:70px; height:90px"
+                        push
+                        icon="fas fa-volume-up"
+                        class="text-body1 text-grey-2"
+                        :class="{'bg-secondary': i.url, 'bg-grey-7': !i.url}"
+                      />
+                    </div>
+
+                    <div
                       class="row items-center"
                       style="width: 180px; border-right: 1px solid #BDBDBD"
                     >
-                      <div class="col-12 q-py-md">
-                        <span class="q-pa-md">{{i.speakerEng}}</span>
+                      <div class="col-12 q-py-sm">
+                        <span class="q-px-md">{{i.speakerEng}}</span>
                       </div>
                       <div class="col-12" style="border: 1px dashed #BDBDBD"></div>
-                      <div class="col-12 q-py-md">
-                        <span class="q-pa-md">{{i.speakerThai}}</span>
+                      <div class="col-12 q-py-sm">
+                        <span class="q-px-md">{{i.speakerThai}}</span>
                       </div>
                     </div>
-                    <div class="row items-center" style="width: calc(100% - 370px);">
-                      <div class="col-12 q-py-md">
-                        <span class="q-pa-md">{{i.sentenceEng}}</span>
+                    <div class="row items-center" style="width: calc(100% - 440px);">
+                      <div class="col-12 q-py-sm">
+                        <span class="q-px-md">{{i.sentenceEng}}</span>
                       </div>
                       <div class="col-12" style="border: 1px dashed #BDBDBD"></div>
-                      <div class="col-12 q-py-md">
-                        <span class="q-pa-md">{{i.sentenceThai}}</span>
+                      <div class="col-12 q-py-sm">
+                        <span class="q-px-md">{{i.sentenceThai}}</span>
                       </div>
                     </div>
                     <div class="text-center row justify-center items-center" style="width: 60px;">
@@ -262,6 +369,7 @@
                         size="md"
                         class="text-white bg-secondary text-body1"
                         icon="fas fa-trash-alt"
+                        @click="deleteDialog(i.sentencekey)"
                       />
                     </div>
                     <div class="text-center row justify-center items-center" style="width: 60px;">
@@ -271,6 +379,7 @@
                         size="md"
                         class="text-white bg-secondary text-body1"
                         icon="fas fa-edit"
+                        @click="editDialog(i.sentencekey)"
                       />
                     </div>
                   </div>
@@ -290,62 +399,38 @@
 <script>
 import { db } from "../router/index.js";
 import { st } from "../router/index.js";
-var xmlHttp;
-function srvTime() {
-  try {
-    //FF, Opera, Safari, Chrome
-    xmlHttp = new XMLHttpRequest();
-  } catch (err1) {
-    //IE
-    try {
-      xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
-    } catch (err2) {
-      try {
-        xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
-      } catch (eerr3) {
-        //AJAX not supported, use CPU time.
-        alert("AJAX not supported");
-      }
-    }
-  }
-  xmlHttp.open("HEAD", window.location.href.toString(), false);
-  xmlHttp.setRequestHeader("Content-Type", "text/html");
-  xmlHttp.send("");
-  return xmlHttp.getResponseHeader("Date");
-}
-
-var st1 = srvTime();
-var date = new Date(st1);
 
 export default {
   data() {
     return {
-      date: date,
-      titleName: "เพิ่มข้อมูล",
       tabShow: "situation",
+      dockey: "",
+      dataDb: "",
+      //tab control
 
-      // ดาต้า
+      // Data ในสถานการณ์
       situation: {
         situationEng: "",
         situationThai: "",
         positionSelec: [],
         url: ""
       },
+      positionData: [],
+      isCheckAll: false,
+
+      //upload vdo
+      isVdoMode: true,
+      isUploadComplete: false,
+
+      //ผู้สนทนา
+      isSpeakerMode: true,
+      isSpeakerEditMode: false,
       speaker: {
         speakerEng: "",
         speakerThai: ""
       },
-      dialog: {
-        orderId: "",
-        speakerKey: "",
-        sentenceEng: "",
-        sentenceThai: ""
-      },
-      positionData: [],
-      sentenseData: [],
+      speakerEditKey: "",
       speakerData: [],
-      optionsSpeaker: [],
-
       columns: [
         {
           name: "nameEng",
@@ -371,22 +456,75 @@ export default {
         { name: "edit", label: "แก้ไข", align: "center", style: "width: 80px" }
       ],
 
-      fileVDO: null,
-      isCheckAll: false,
-      isVdo: false,
-      isSpeakerMode: false,
-      isSentenMode: false
+      //บทสนทนา
+      isSentenMode: true,
+      optionsSpeaker: [],
+      dialog: {
+        orderId: "",
+        speakerKey: "",
+        sentenceEng: "",
+        sentenceThai: ""
+      },
+      sentenceData: [],
+      isFile: false,
+      file: "",
+      editDialogMode: false
     };
   },
   methods: {
-    // start btn zone
-
+    //****save edit dialog */
+    //****ลบไฟล์เสียงในบทสนทนา ***********/
+    deleteSoundBtn() {},
+    //*****ยกเลิก Dialog *****/
+    backeditBtn() {
+      this.editDialogMode = false;
+      this.$router.push("/landing/" + this.dockey + "/4");
+    },
+    //****แก้ไข Dialog */
+    editDialog(key) {
+      this.editDialogMode = true;
+      this.dataDb
+        .collection("sentence")
+        .doc(key)
+        .get()
+        .then(data => {
+          this.dialog = data.data();
+          if (this.dialog.url.length) {
+            this.isFile = true;
+          }
+        });
+    },
+    //****ลบ Dialog */
+    deleteDialog(key) {
+      this.$q
+        .dialog({
+          title: "คำเตือน",
+          message: "คุณต้องการลบข้อมูลหรือไม่",
+          cancel: true,
+          persistent: true
+        })
+        .onOk(() => {
+          this.dataDb
+            .collection("sentence")
+            .doc(key)
+            .delete()
+            .then(() => {
+              this.$q.notify({
+                icon: "fas fa-check-circle",
+                message: "ลบข้อมูลเรียบร้อย",
+                color: "secondary",
+                position: "bottom",
+                timeout: 1000
+              });
+              this.loadDialog();
+            });
+        });
+    },
+    //************* */ บันทึกสถานการณ์
     async saveSituBtn() {
       // ฟังกืชันเอาเวลาในเครื่อง เอาไว้ใส่ในเวลบาดราฟแล้วก็ปุ่มซิงค์ข้อมูล
       let api = "https://api.winner-english.com/data/api/gettime.php";
-
       let response = await axios.get(api);
-
       let date = response.data[0].date;
       let microtime = response.data[0].microtime;
 
@@ -401,7 +539,7 @@ export default {
         this.$q.notify({
           message: "กรุณากรอกข้อมูลให้ครบถ้วน",
           color: "negative",
-          position: "top",
+          position: "bottom",
           timeout: 1000,
           icon: "fas fa-exclamation-circle"
         });
@@ -412,133 +550,93 @@ export default {
         this.$q.notify({
           message: "กรุณาเลือกตำแหน่งอย่างน้อย 1 ตำแหน่ง",
           color: "negative",
-          position: "top",
+          position: "bottom",
           timeout: 1000,
           icon: "fas fa-exclamation-circle"
         });
         return;
       }
 
-      if (this.isVdo == false) {
-        this.$q.notify({
-          message: "กรุณาเพิ่มวีดีโอ",
-          color: "negative",
-          position: "top",
-          timeout: 1000,
-          icon: "fas fa-exclamation-circle"
-        });
-        return;
-      }
+      // add ข้อมูลเข้าฐานข้อมูล
 
-      // เพิ่มไฟล์หน้าเพิ่มข้อมูล
-      if (this.$route.name == "dialogadd") {
-        this.$q.loading.show();
+      this.isVdoMode = true;
+      this.isSpeakerMode = true;
+      if (this.dockey.length) {
         db.collection("Dialog")
-          .add(this.situation)
-          .then(getId => {
-            if (this.fileVDO.type == "video/mp4") {
-              st.child("videos/dialog/" + getId.id + ".mp4")
-                .put(this.fileVDO)
-                .then(res => {
-                  let vdoPath = res.ref.getDownloadURL();
-                  vdoPath.then(url => {
-                    let getURL = {
-                      url: url,
-                      savedraft: microtime,
-                      saveserver: 0
-                    };
-                    db.collection("Dialog")
-                      .doc(getId.id)
-                      .update(getURL)
-                      .then(() => {
-                        this.$q.loading.hide();
-
-                        this.tabShow = "speaker";
-                        this.isSpeakerMode = true;
-                        this.$q.notify({
-                          message: "บันทึกข้อมูลเรียบร้อย",
-                          color: "secondary",
-                          position: "top",
-                          timeout: 1000
-                        });
-                        let speaker = {
-                          savedraft: microtime
-                        };
-                        let sentence = {
-                          savedraft: microtime
-                        };
-                        db.collection("Dialog")
-                          .doc(getId.id)
-                          .collection("draft")
-                          .add(speaker);
-                        db.collection("Dialog")
-                          .doc(getId.id)
-                          .collection("draft")
-                          .add(sentence);
-                        this.$router.push("/dialog/edit/" + getId.id);
-                      });
-                  });
-                });
-            }
+          .doc("draft")
+          .collection("data")
+          .doc(this.dockey)
+          .set(this.situation)
+          .then(doc => {
+            db.collection("Dialog")
+              .doc("draft")
+              .set({
+                saveDraft: microtime
+              });
           });
       } else {
-        // หน้าแก้ไขข้อมูล
-        this.$q.loading.show();
-
         db.collection("Dialog")
-          .doc(this.$route.params.key)
-          .update(this.situation)
-          .then(getId => {
-            // เปลี่ยน VDO
-            if (this.fileVDO == null) {
-              this.$q.loading.hide();
-              this.tabShow = "speaker";
-              this.isSpeakerMode = true;
-              this.$q.notify({
-                message: "บันทึกข้อมูลเรียบร้อย",
-                color: "secondary",
-                position: "top",
-                timeout: 1000
+          .doc("draft")
+          .collection("data")
+          .add(this.situation)
+          .then(doc => {
+            this.dockey = doc.id;
+            db.collection("Dialog")
+              .doc("draft")
+              .set({
+                saveDraft: microtime
               });
-            } else {
-              // การบันทึก vdo เข้า
-              this.situation = {};
-              if (this.fileVDO.type == "video/mp4") {
-                st.child("videos/dialog/" + this.$route.params.key + ".mp4")
-                  .put(this.fileVDO)
-                  .then(res => {
-                    let vdoPath = res.ref.getDownloadURL();
-                    vdoPath.then(url => {
-                      let getURL = {
-                        url: url,
-                        savedraft: microtime,
-                        saveserver: 0
-                      };
-                      db.collection("Dialog")
-                        .doc(this.$route.params.key)
-                        .update(getURL)
-                        .then(() => {
-                          this.$q.loading.hide();
-                          this.loadDataSituation();
-                          this.tabShow = "speaker";
-                          this.isSpeakerMode = true;
-                          this.$q.notify({
-                            message: "บันทึกข้อมูลเรียบร้อย",
-                            color: "secondary",
-                            position: "top",
-                            timeout: 1000
-                          });
-                        });
-                    });
-                  });
-              }
-            }
-
-            // จบการเอา VDO เข้า
-            // this.$q.loading.hide();
+            this.$router.push("/dialog/edit/" + this.dockey + "/1");
           });
       }
     },
+
+    /*************บันทึกไฟล์ VDO***********/
+    saveVdo(data) {
+      let fileVdo = data[0];
+      st.child("videos/dialog/" + this.dockey + ".mp4")
+        .put(fileVdo)
+        .then(res => {
+          res.ref.getDownloadURL().then(url => {
+            //ทำการ update url ใน database
+            db.collection("Dialog")
+              .doc("draft")
+              .collection("data")
+              .doc(this.dockey)
+              .update({ url: url });
+            this.situation.url = url;
+            this.isUploadComplete = true;
+          });
+        });
+    },
+
+    /***************ลบไฟล์ VDO */
+    delVdoBtn() {
+      this.$q
+        .dialog({
+          title: "คำเตือน",
+          message: "คุณต้องการลบวีดีโอหรือไม่",
+          cancel: true,
+          persistent: true
+        })
+        .onOk(() => {
+          this.dataDb
+            .update({
+              url: ""
+            })
+            .then(() => {
+              st.child("videos/dialog/" + this.dockey + ".mp4")
+                .delete()
+                .then(res => {
+                  // window.location.reload();
+                  // this.$router.push("/dialog/edit/" + this.dockey + "/2");
+                });
+              this.isUploadComplete = false;
+            });
+        });
+    },
+
+    /*************บันทึกผู้สนทนา***********/
     saveSpeakBtn() {
       this.$refs.speakerEng.validate(); // ช่องชื่อผู้สนทนาภาษาอังกฤษ
       this.$refs.speakerThai.validate(); // ช่องชื่อผู้สนทนาภาษาไทย
@@ -547,7 +645,7 @@ export default {
         this.$q.notify({
           message: "กรุณากรอกข้อมูลให้ครบถ้วน",
           color: "negative",
-          position: "top",
+          position: "bottom",
           timeout: 1000,
           icon: "fas fa-exclamation-circle"
         });
@@ -555,28 +653,148 @@ export default {
       }
 
       this.$q.loading.show();
-      db.collection("Dialog")
-        .doc(this.$route.params.key)
-        .collection("draft")
-        .doc("speaker")
-        .collection("speaker")
-        .add(this.speaker)
-        .then(() => {
-          this.isSentenMode = true;
-          this.$q.notify({
-            message: "บันทึกข้อมูลเรียบร้อย",
-            color: "secondary",
-            position: "top",
-            timeout: 1000
+      if (this.isSpeakerEditMode) {
+        console.log("test");
+        db.collection("Dialog")
+          .doc("draft")
+          .collection("data")
+          .doc(this.dockey)
+          .collection("speaker")
+          .doc(this.speakerEditKey)
+          .set(this.speaker)
+          .then(() => {
+            this.$q.notify({
+              icon: "fas fa-check-circle",
+              message: "บันทึกข้อมูลเรียบร้อย",
+              color: "secondary",
+              position: "bottom",
+              timeout: 1000
+            });
+            this.speaker.speakerEng = "";
+            this.speaker.speakerThai = "";
+            this.loadSpeaker();
+            this.isSpeakerEditMode = false;
+            this.$q.loading.hide();
           });
-          this.speaker.speakerEng = "";
-          this.speaker.speakerThai = "";
-          this.loadDataSituation();
-          this.$q.loading.hide();
-          this.tabShow = "dialog";
+      } else {
+        db.collection("Dialog")
+          .doc("draft")
+          .collection("data")
+          .doc(this.dockey)
+          .collection("speaker")
+          .add(this.speaker)
+          .then(() => {
+            this.isSentenMode = true;
+            this.$q.notify({
+              icon: "fas fa-check-circle",
+              message: "บันทึกข้อมูลเรียบร้อย",
+              color: "secondary",
+              position: "bottom",
+              timeout: 1000
+            });
+            this.speaker.speakerEng = "";
+            this.speaker.speakerThai = "";
+
+            this.loadSpeaker();
+            this.$q.loading.hide();
+          });
+      }
+    },
+
+    //**************โหลดข้อมูลผู้สนทนา
+    loadSpeaker() {
+      this.speakerData = [];
+      this.optionsSpeaker = [];
+      db.collection("Dialog")
+        .doc("draft")
+        .collection("data")
+        .doc(this.dockey)
+        .collection("speaker")
+        .get()
+        .then(doc => {
+          if (doc.size) {
+            doc.forEach(data => {
+              // สำหรับหน้าผู้สนทนา
+              let key = { key: data.id };
+              let final = { ...key, ...data.data() };
+              this.speakerData.push(final);
+              //สำหรับหน้าบทสนทนา
+              let data2 = {
+                label: data.data().speakerEng + " - " + data.data().speakerThai,
+                value: data.id
+              };
+              this.optionsSpeaker.push(data2);
+            });
+            this.speakerData.sort((a, b) => {
+              return a.speakerEng - b.speakerEng ? 1 : -1;
+            });
+
+            this.optionsSpeaker.sort((a, b) => {
+              return a.label - b.label ? 1 : -1;
+            });
+            this.dialog.speakerKey = this.optionsSpeaker[0].value;
+
+            this.loadDialog();
+          }
         });
     },
+
+    //****************ลบผู้สนทนา */
+    deleteSpeaker(key) {
+      this.$q
+        .dialog({
+          title: "คำเตือน",
+          message: "คุณต้องการลบผู้สนทนานี้หรือไม่",
+          cancel: true,
+          persistent: true
+        })
+        .onOk(() => {
+          db.collection("Dialog")
+            .doc("draft")
+            .collection("data")
+            .doc(this.dockey)
+            .collection("speaker")
+            .doc(key)
+            .delete()
+            .then(() => {
+              this.$q.notify({
+                icon: "fas fa-check-circle",
+                message: "ลบข้อมูลเรียบร้อย",
+                color: "secondary",
+                position: "bottom",
+                timeout: 1000
+              });
+              this.loadSpeaker();
+            });
+        });
+    },
+
+    //************แก้ไขผู้สนทนา */
+    editSpeaker(key) {
+      this.isSpeakerEditMode = true;
+      this.speakerEditKey = key;
+      db.collection("Dialog")
+        .doc("draft")
+        .collection("data")
+        .doc(this.dockey)
+        .collection("speaker")
+        .doc(key)
+        .get()
+        .then(data => {
+          this.speaker = data.data();
+        });
+    },
+
+    //**************ปุ่มยกเลิกกรณีแก้ไขผู้สนทนา */
+    backBtn2() {
+      this.isSpeakerEditMode = false;
+      this.speaker.speakerEng = "";
+      this.speaker.speakerThai = "";
+    },
+
+    //****บันทึกบทสนทนา */
     saveDialogBtn() {
+      let pageNo = this.$route.params.page;
       this.$refs.dialogOrder.validate(); // ช่องเลขลำดับ
       this.$refs.sentenceEng.validate(); // ช่องประโยคสนทนาภาษาอังกฤษ
       this.$refs.sentenceThai.validate(); // ช่องประโยคสนทนาภาษาไทย
@@ -589,7 +807,7 @@ export default {
         this.$q.notify({
           message: "กรุณากรอกข้อมูลให้ครบถ้วน",
           color: "negative",
-          position: "top",
+          position: "bottom",
           timeout: 1000,
           icon: "fas fa-exclamation-circle"
         });
@@ -598,12 +816,44 @@ export default {
 
       this.$q.loading.show();
       db.collection("Dialog")
-        .doc(this.$route.params.key)
-        .collection("draft")
-        .doc("sentence")
+        .doc("draft")
+        .collection("data")
+        .doc(this.dockey)
         .collection("sentence")
         .add(this.dialog)
-        .then(() => {
+        .then(doc => {
+          //save sound file
+          if (this.file != "") {
+            st.child("audios/dialog/" + doc.id + ".mp3")
+              .put(this.file[0])
+              .then(res => {
+                st.child("audios/dialog/" + doc.id + ".mp3")
+                  .getDownloadURL()
+                  .then(res => {
+                    this.dataDb
+                      .collection("sentence")
+                      .doc(doc.id)
+                      .update({
+                        url: res
+                      })
+                      .then(() => {
+                        this.$router.push("/landing/" + this.dockey + "/4");
+                      });
+                  });
+              });
+          } else {
+            db.collection("Dialog")
+              .doc("draft")
+              .collection("data")
+              .doc(this.dockey)
+              .collection("sentence")
+
+              .doc(doc.id)
+              .update({
+                url: ""
+              });
+          }
+
           this.$q.notify({
             message: "บันทึกข้อมูลเรียบร้อย",
             color: "secondary",
@@ -614,127 +864,95 @@ export default {
           this.dialog.orderId = "";
           this.dialog.sentenceEng = "";
           this.dialog.sentenceThai = "";
-          this.loadDataSituation();
+          this.loadDialog();
           this.$q.loading.hide();
         });
     },
 
+    ///***********เล่นเสียง */
+    playsound(url) {
+      let audio = new Audio(url);
+      setTimeout(() => {
+        audio.play();
+      }, 1000);
+    },
+
+    //******load ข้อมูลบทสนทนา */
+    loadDialog() {
+      this.sentenceData = [];
+
+      db.collection("Dialog")
+        .doc("draft")
+        .collection("data")
+        .doc(this.dockey)
+        .collection("sentence")
+
+        .get()
+        .then(doc => {
+          doc.forEach(data => {
+            let datakey = {
+              sentencekey: data.id
+            };
+            db.collection("Dialog")
+              .doc("draft")
+              .collection("data")
+              .doc(this.dockey)
+              .collection("speaker")
+              .doc(data.data().speakerKey)
+              .get()
+              .then(data2 => {
+                let speaker = {
+                  speakerEng: data2.data().speakerEng,
+                  speakerThai: data2.data().speakerThai,
+                  url: data2.data().url
+                };
+                let datafinal = { ...datakey, ...speaker, ...data.data() };
+
+                this.sentenceData.push(datafinal);
+                this.sentenceData.sort((a, b) => {
+                  return Number(a.orderId) - Number(b.orderId);
+                });
+              });
+          });
+        });
+    },
+    //***********upload ไฟล์เสียง ************/
+
+    //************ลบไฟล์เสียง ****************/
+
+    //***********ลบ Dialog **************/
+
+    //**********edit Dialog **************/
+
+    //**********ยกเลิกแก้ไข Dialog **************/
+
+    //**************ปุ่มยกเลิกทั่วไป ***********/
     backBtn() {
       this.$router.push("/dialog");
     },
-    addVdoBtn(val) {
-      // this.$q.loading.show();
-      let tagPath = document.querySelector("video");
-      let file = val[0];
-      let reader = new FileReader();
 
-      reader.onload = function() {
-        tagPath.src = reader.result;
-      };
-
-      if (file) {
-        reader.readAsDataURL(file);
-        this.fileVDO = file;
-        this.isVdo = true;
+    //***********select All ในหน้าสถานการณ์ */
+    selecisCheckAll() {
+      if (this.isCheckAll) {
+        for (let i = 0; i < this.positionData.length; i++) {
+          const element = this.positionData[i];
+          this.situation.positionSelec.push(element.key);
+        }
       } else {
-        tagPath.src = "";
-        this.isVdo = false;
+        this.situation.positionSelec = [];
       }
-      // this.$q.loading.hide()
-    },
-    delVdoBtn() {
-      this.$q
-        .dialog({
-          title: "คำเตือน",
-          message: "คุณต้องการลบวีดีโอหรือไม่",
-          cancel: true,
-          persistent: true
-        })
-        .onOk(() => {
-          this.fileVDO = null;
-          this.isVdo = false;
-        });
-
-      // document.querySelector("video").val("");
     },
 
-    // end btn zone
-    // start load data zone
-
-    loadDataSituation() {
-      this.speakerData = [];
-      this.optionsSpeaker = [];
-      this.sentenseData = [];
-      let getData = db.collection("Dialog").doc(this.$route.params.key);
-
-      getData.get().then(doc => {
-        this.situation = doc.data();
-        this.isSpeakerMode = true;
-        this.isVdo = true;
-
-        getData
-          .collection("draft")
-          .doc("speaker")
-          .collection("speaker")
-          .get()
-          .then(docspeak => {
-            if (docspeak.size > 0) {
-              this.isSentenMode = true;
-              docspeak.forEach(element => {
-                let key = { key: element.id };
-                let data = {
-                  label:
-                    element.data().speakerEng +
-                    " - " +
-                    element.data().speakerThai,
-                  value: element.id
-                };
-                let final = { ...key, ...element.data() };
-
-                this.speakerData.push(final);
-                this.speakerData.sort((a, b) => {
-                  return a.speakerEng > b.speakerEng ? 1 : -1;
-                });
-
-                this.optionsSpeaker.push(data);
-                this.optionsSpeaker.sort((a, b) => {
-                  return a.label > b.label ? 1 : -1;
-                });
-                this.dialog.speakerKey = this.optionsSpeaker[0].value;
-              });
-              getData
-                .collection("draft")
-                .doc("sentence")
-                .collection("sentence")
-                .get()
-                .then(docsenten => {
-                  if (docsenten.size > 0) {
-                    docsenten.forEach(element => {
-                      let speaker = {
-                        speakerEng: "",
-                        speakerThai: ""
-                      };
-
-                      for (let i = 0; i < this.speakerData.length; i++) {
-                        if (
-                          element.data().speakerKey == this.speakerData[i].key
-                        ) {
-                          speaker.speakerEng = this.speakerData[i].speakerEng;
-                          speaker.speakerThai = this.speakerData[i].speakerThai;
-                        }
-                      }
-                      let final = { ...element.data(), ...speaker };
-                      this.sentenseData.push(final);
-                      this.sentenseData.sort((a, b) => {
-                        return a.orderId > b.orderId ? 1 : -1;
-                      });
-                    });
-                  }
-                });
-            }
-          });
-      });
+    //***********select All ในหน้าสถานการณ์ */
+    checkBoxChanged() {
+      if (this.situation.positionSelec.length == this.positionData.length) {
+        this.isCheckAll = true;
+      } else {
+        this.isCheckAll = false;
+      }
     },
+
+    //************โหลดข้อมูลตำแหน่งในหน้าสถานการณ์
     loadPosition() {
       this.$q.loading.show();
       db.collection("Position")
@@ -751,37 +969,57 @@ export default {
           });
         });
     },
-    // loadVdo() {
 
-    // }
+    //*************โหลดข้อมูลใน mode edit */
+    async loadBasicData() {
+      //load ข้อมูลหน้า
+      try {
+        let dataPath = await st
+          .child("videos/dialog/" + this.dockey + ".mp4")
+          .getDownloadURL();
 
-    // end load data zone
-    // start ฟังกืชั่นการทำงานต่างๆ
-    selecisCheckAll() {
-      if (this.isCheckAll) {
-        for (let i = 0; i < this.positionData.length; i++) {
-          const element = this.positionData[i];
-          this.situation.positionSelec.push(element.key);
-        }
-      } else {
-        this.situation.positionSelec = [];
+        this.isUploadComplete = true;
+      } catch (err) {
+        this.isUploadComplete = false;
       }
-    },
-    checkBoxChanged() {
-      if (this.situation.positionSelec.length == this.positionData.length) {
-        this.isCheckAll = true;
-      } else {
-        this.isCheckAll = false;
-      }
+      this.dataDb.get().then(data => {
+        //load ข้อมูลหน้าสถานการณ์
+        this.situation = data.data();
+        this.checkBoxChanged();
+      });
     }
-    // end ฟังกืชั่นการทำงานต่างๆ
   },
+
   mounted() {
     this.loadPosition();
+    // this.loadSpeaker(); ///temp
+    // this.loadDialog(); // temp
 
     if (this.$route.name == "dialogedit") {
-      this.loadDataSituation();
-      this.checkBoxChanged();
+      this.dockey = this.$route.params.key;
+      let pageNo = this.$route.params.page;
+      if (pageNo == 1) {
+        this.tabShow = "situation";
+      } else if (pageNo == 2) {
+        this.tabShow = "vdo";
+      } else if (pageNo == 3) {
+        this.tabShow = "speaker";
+      } else {
+        this.tabShow = "dialog";
+      }
+      this.dataDb = db
+        .collection("Dialog")
+        .doc("draft")
+        .collection("data")
+        .doc(this.dockey);
+      // this.loadDataSituation();
+
+      this.loadSpeaker();
+      this.loadBasicData();
+    } else {
+      this.isVdoMode = false;
+      this.isSpeakerMode = false;
+      this.isSentenMode = false;
     }
   }
 };

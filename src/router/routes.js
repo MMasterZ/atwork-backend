@@ -1,4 +1,5 @@
-const routes = [{
+const routes = [
+  {
     path: "/",
     component: () => import("pages/login.vue"),
     name: "login"
@@ -17,7 +18,8 @@ const routes = [{
   {
     path: "/",
     component: () => import("layouts/MyLayout.vue"),
-    children: [{
+    children: [
+      {
         path: "/welcome",
         component: () => import("pages/Index.vue"),
         name: "welcome"
@@ -112,7 +114,6 @@ const routes = [{
         name: "vocabularyedit"
       },
 
-
       // pages expression
       {
         path: "/expression",
@@ -130,7 +131,6 @@ const routes = [{
         name: "expressionedit"
       },
 
-
       // pages reading
       {
         path: "/dialog",
@@ -143,7 +143,7 @@ const routes = [{
         name: "dialogadd"
       },
       {
-        path: "/dialog/edit/:key",
+        path: "/dialog/edit/:key/:page",
         component: () => import("pages/dialogadd.vue"),
         name: "dialogedit"
       },
@@ -158,6 +158,11 @@ const routes = [{
         path: "/writing/add",
         component: () => import("pages/writingadd.vue"),
         name: "writingadd"
+      },
+      {
+        path: "/landing/:key/:page",
+        component: () => import("pages/landing.vue"),
+        name: "landingpage"
       }
     ]
   }

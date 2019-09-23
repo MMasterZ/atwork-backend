@@ -4,12 +4,12 @@
       <q-toolbar class="text-primary">
         <div></div>
         <q-space />
-        <q-toolbar-title class="col-10 mobile-only text-white text-h5" align="center">Vocabulary</q-toolbar-title>
-        <q-toolbar-title class="col-11 desktop-only text-white text-h4" align="center">คำศัพท์</q-toolbar-title>
+        <div class="mobile-only text-grey-2 text-h5">คำศัพท์</div>
+        <div class="desktop-only text-grey-2 text-h4">คำศัพท์</div>
         <q-space />
         <div align="right" class="q-pr-sm">
           <q-btn
-            @click="reloadBtn()"
+            @click="syncBtn()"
             size="md"
             color="secondary"
             round
@@ -19,7 +19,7 @@
         </div>
       </q-toolbar>
     </div>
-    <div class="q-mx-md q-mt-md bg-grey-2">
+    <div class="bg-grey-2 q-ma-md-md">
       <div>
         <q-tabs
           v-model="tab"
@@ -31,23 +31,24 @@
         >
           <q-tab name="draft" label="แบบร่าง" icon="fas fa-pen"></q-tab>
           <q-tab name="server" label="เซิร์ฟเวอร์" icon="fas fa-cloud"></q-tab>
-          <q-input filled class="absolute-top-right" label="ค้นหา">
+          <q-input filled class="desktop-only absolute-top-right" label="ค้นหา">
             <template v-slot:append>
               <q-icon name="search" />
             </template>
           </q-input>
         </q-tabs>
       </div>
-      <div class="row q-pa-md">
-        <div class="col-md-6">
+      <div class="row row justify-between q-pa-md">
+        <div class="col-md-6 col-sm-6 col-xs-7">
           <q-select
+            @input="loadData()"
             outlined
-            label="ตำแหน่งทั่วไป"
-            v-model="vocab.position"
+            label="ตำแหน่ง"
+            v-model="obj.positions"
             :options="positionOptions"
           />
         </div>
-        <div class="col-md-6 q-py-sm" align="right">
+        <div class="col-md-6 col-sm-6 q-py-sm" align="right">
           <q-btn
             @click="addBtn()"
             size="md"
@@ -57,41 +58,59 @@
             class="text-body1 text-white q-mx-md"
           />
           <q-btn
-            @click="printBtn()"
             size="md"
             color="secondary"
             round
             icon="fas fa-print"
-            class="text-body1 text-white"
+            class="desktop-only text-body1 text-white"
+          />
+          <q-btn
+            size="md"
+            color="secondary"
+            round
+            icon="fas fa-search"
+            class="mobile-only text-body1 text-white"
           />
         </div>
       </div>
       <div class="q-pb-lg flex flex-center">
-        <q-pagination v-model="page" :max="6" color="blue-grey-10" :direction-links="true" />
+        <!-- <q-pagination v-model="page" :max="6" color="blue-grey-10" :direction-links="true" /> -->
       </div>
       <div class="row">
         <div
-          v-for="(item,index ) in    vocabularyList "
+          v-for="(item,index ) in   vocabularyList "
           :key="index"
-          class="col-md-3 col-sm-6 col-xs-12 q-px-md q-py-sm"
+          class="col-md-3 col-sm-6 col-xs-12 q-px-md-md q-px-sm-md q-py-sm"
         >
-          <q-toolbar class="no-padding q-py-sm col-md-3 shadow-10 bg-grey-2">
+          <q-toolbar class="rounded-borders no-padding q-py-sm col-md-3 shadow-5 bg-grey-2">
             <q-btn
               flat
               dense
               icon="fas fa-volume-up"
               style="width:60px; height:70px"
               class="bg-secondary text-grey-2"
+              :class="{'bg-grey-7': item.url.length==0}"
+              :disable="item.url.length==0"
+              @click="playsound(item.url)"
             />
-            <q-toolbar-title>{{item.vocab}}</q-toolbar-title>
-            <q-toolbar-title>{{item.meaning}}</q-toolbar-title>
-            <q-btn flat @click="editBtn()" dense icon="fas fa-chevron-right" style=" height:70px" />
+            <q-toolbar-title @click="editBtn(item.key)" class="pointer">
+              <div class="text-body1">{{item.vocab}}</div>
+              <div class="text-body1">{{item.meaning}}</div>
+            </q-toolbar-title>
+
+            <q-btn
+              flat
+              @click="editBtn(item.key)"
+              dense
+              icon="fas fa-chevron-right"
+              style=" height:70px"
+            />
           </q-toolbar>
         </div>
       </div>
 
       <div class="q-pt-lg q-pb-md flex flex-center">
-        <q-pagination v-model="page" :max="6" color="blue-grey-10" :direction-links="true" />
+        <!-- <q-pagination v-model="page" :max="6" color="blue-grey-10" :direction-links="true" /> -->
       </div>
     </div>
   </q-page>
@@ -106,7 +125,9 @@ export default {
     return {
       tab: "draft",
       vocabularyList: [],
-      vocab: { position: "", positionKey: "" },
+      obj: {
+        positions: ""
+      },
       page: 1,
       positionOptions: []
     };
@@ -114,9 +135,12 @@ export default {
   methods: {
     loadData() {
       db.collection("Vocabulary")
-        .where("positionKey", "==", this.vocab.positionKey)
+        .doc("draft")
+        .collection("data")
+        .where("positionKey", "==", this.obj.positions.value)
         .get()
         .then(doc => {
+          this.vocabularyList = [];
           if (doc.size > 0) {
             doc.forEach(element => {
               let dataKey = {
@@ -126,36 +150,92 @@ export default {
                 ...dataKey,
                 ...element.data()
               };
+
               this.vocabularyList.push(final);
             });
+            this.vocabularyList.sort((a, b) => {
+              return a.vocab > b.vocab ? 1 : -1;
+            });
+          } else {
           }
         });
     },
+    //************************ โหลดตำแหน่ง
     loadPosition() {
       db.collection("Position")
         .get()
         .then(doc => {
+          let temp = {
+            value: "ทั่วไป",
+            label: "***ทั่วไป***"
+          };
+          this.positionOptions.push(temp);
+          this.obj.positions = temp;
           doc.forEach(element => {
-            let loadPosi = {
+            let showPosition = {
               value: element.id,
               label: element.data().name
             };
-            let final = {
-              ...loadPosi,
-              ...element.data()
-            };
-            this.vocab.positionKey = loadPosi.value;
-            this.positionOptions.push(final);
-            this.vocab.position = this.positionOptions[0].label;
-            console.log(this.vocab.positionKey);
+
+            this.positionOptions.push(showPosition);
           });
+          this.positionOptions.sort((a, b) => {
+            return a.label > b.label ? 1 : -1;
+          });
+          this.loadData();
         });
     },
-    editBtn() {
-      this.$router.push("/vocabulary/add/" + key);
+    playsound(url) {
+      let audio = new Audio(url);
+      setTimeout(() => {
+        audio.play();
+      }, 1000);
+    },
+    editBtn(key) {
+      this.$router.push("/vocabulary/edit/" + key);
     },
     addBtn() {
       this.$router.push("/vocabulary/add");
+    },
+    async syncBtn() {
+      //update server time
+      let api = "https://api.winner-english.com/data/api/gettime.php";
+      let response = await axios.get(api);
+      let date = response.data[0].date;
+      let microtime = response.data[0].microtime;
+      db.collection("Expression")
+        .doc("server")
+        .set({
+          saveServer: microtime
+        });
+      //delete all record from server
+      db.collection("Vocabulary")
+        .doc("server")
+        .collection("data")
+        .get()
+        .then(doc => {
+          doc.forEach(data => {
+            db.collection("Vocabulary")
+              .doc("server")
+              .collection("data")
+              .doc(data.id)
+              .delete();
+          });
+          //copy all record from draft to server
+          db.collection("Vocabulary")
+            .doc("draft")
+            .collection("data")
+            .get()
+            .then(doc => {
+              doc.forEach(data => {
+                db.collection("Vocabulary")
+                  .doc("server")
+                  .collection("data")
+                  .doc(data.id)
+                  .set(data.data());
+              });
+            });
+        });
     }
   },
   mounted() {
@@ -164,4 +244,7 @@ export default {
 };
 </script>
 <style scoped >
+.pointer:hover {
+  cursor: pointer;
+}
 </style>

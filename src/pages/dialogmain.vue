@@ -16,6 +16,7 @@
             icon="fas fa-sync-alt"
             class="text-body1 text-white"
             :disable="tabShow == 'server'"
+            :class="{'bg-grey-7' : tabShow == 'server'}"
           />
         </div>
       </q-toolbar>
@@ -68,7 +69,7 @@
             :key="index"
           >
             <div class="col-md-3" style="width: 370px:">
-              <q-video :src="i.url" />
+              <video :src="i.url" width="370px" controls></video>
             </div>
             <div class="col-md-9 q-pl-lg">
               <div class="row justify-end">
@@ -131,7 +132,7 @@
                 @click="addBtn()"
                 disable
                 size="md"
-                color="secondary"
+                color="grey-7"
                 round
                 icon="fas fa-plus"
                 class="text-body1 text-white"
@@ -145,7 +146,7 @@
             :key="index"
           >
             <div class="col-md-3" style="width: 370px:">
-              <q-video :src="i.url" />
+              <video :src="i.url" width="370px" controls></video>
             </div>
             <div class="col-md-9 q-pl-lg">
               <div class="row justify-end">
@@ -153,7 +154,7 @@
                   <q-btn
                     disable
                     size="md"
-                    color="secondary"
+                    color="grey-7"
                     round
                     icon="fas fa-trash-alt"
                     class="text-body1 text-white"
@@ -163,7 +164,7 @@
                   <q-btn
                     disable
                     size="md"
-                    color="secondary"
+                    color="grey-7"
                     round
                     icon="fas fa-edit"
                     class="text-body1 text-white"
@@ -173,7 +174,7 @@
                   <q-btn
                     disable
                     size="md"
-                    color="secondary"
+                    color="grey-7"
                     round
                     icon="fas fa-print"
                     class="text-body1 text-white"
@@ -213,12 +214,101 @@ export default {
     };
   },
   methods: {
-    syncBtn() {
-      console.log("อัพข้อมูลเข้าระบบ จริง");
+    async syncBtn() {
+      console.log("test");
+      //update server time
+      let api = "https://api.winner-english.com/data/api/gettime.php";
+      let response = await axios.get(api);
+      let date = response.data[0].date;
+      let microtime = response.data[0].microtime;
+
+      // delete server
+      await db
+        .collection("Dialog")
+        .doc("server")
+        .collection("data")
+        .get()
+        .then(doc => {
+          doc.forEach(data => {
+            db.collection("Dialog")
+              .doc("server")
+              .collection("data")
+              .doc(data.id)
+              .delete();
+          });
+        });
+
+      db.collection("Dialog")
+        .doc("server")
+        .set({
+          saveServer: microtime
+        });
+
+      await db
+        .collection("Dialog")
+        .doc("draft")
+        .collection("data")
+        .get()
+        .then(doc2 => {
+          doc2.forEach(data2 => {
+            db.collection("Dialog")
+              .doc("server")
+              .collection("data")
+              .doc(data2.id)
+              .set(data2.data())
+              .then(() => {
+                //copy sentence
+                db.collection("Dialog")
+                  .doc("draft")
+                  .collection("data")
+                  .doc(data2.id)
+                  .collection("sentence")
+                  .get()
+                  .then(doc3 => {
+                    doc3.forEach(data3 => {
+                      db.collection("Dialog")
+                        .doc("server")
+                        .collection("data")
+                        .doc(data2.id)
+                        .collection("sentence")
+                        .doc(data3.id)
+                        .set(data3.data());
+                    });
+                  });
+                //copy speaker
+                db.collection("Dialog")
+                  .doc("draft")
+                  .collection("data")
+                  .doc(data2.id)
+                  .collection("speaker")
+                  .get()
+                  .then(doc4 => {
+                    doc4.forEach(data4 => {
+                      db.collection("Dialog")
+                        .doc("server")
+                        .collection("data")
+                        .doc(data2.id)
+                        .collection("speaker")
+                        .doc(data4.id)
+                        .set(data4.data());
+                    });
+                  });
+              });
+          });
+        });
+
+      //delete all record from server collection
+      // db.collection("Dialog")
+      //   .doc("server")
+      //   .collection("data")
+      //   .get()
+      //   .then(doc => {
+      //     doc.forEach(data => {
+      //       console.log(data.id);
+      //     });
+      //   });
     },
     deleteBtn(key) {
-      console.log("ลบไฟล์");
-
       this.$q
         .dialog({
           title: "ยืนยัน",
@@ -227,22 +317,59 @@ export default {
           persistent: true
         })
         .onOk(() => {
-          db.collection("Dialog")
-            .doc(key)
-            .delete()
-            .then(() => {
-              this.loadDialog();
+          let dbx = db
+            .collection("Dialog")
+            .doc("draft")
+            .collection("data")
+            .doc(key);
+
+          dbx
+            .collection("sentence")
+            .get()
+            .then(doc => {
+              doc.forEach(data => {
+                dbx
+                  .collection("sentence")
+                  .doc(data.id)
+                  .delete();
+              });
+              dbx
+                .collection("speaker")
+                .get()
+                .then(doc => {
+                  doc.forEach(data => {
+                    dbx
+                      .collection("speaker")
+                      .doc(data.id)
+                      .delete();
+                  });
+                  dbx.delete().then(() => {
+                    this.$q.notify({
+                      icon: "fas fa-check-circle",
+                      message: "ลบข้อมูลเรียบร้อย",
+                      color: "secondary",
+                      position: "bottom",
+                      timeout: 1000
+                    });
+                    this.loadDialog();
+                  });
+                });
             });
+
+          // .delete()
+          // .then(() => {
+          //   this.loadDialog();
+          // });
         });
     },
     editBtn(key) {
-      this.$router.push("/dialog/edit/" + key);
+      this.$router.push("/dialog/edit/" + key + "/1");
     },
     addBtn() {
       this.$router.push("/dialog/add");
     },
     printBtn(key) {
-      console.log("ไปยังหน้าปริ้น");
+      alert("พักตรงนี้ดีกว่า... เหนื่อยจุงเบย");
     },
     loadPosition() {
       this.$q.loading.show();
@@ -271,6 +398,9 @@ export default {
       // this.$q.loading.show();
       this.dialogList = [];
       db.collection("Dialog")
+        .doc("draft")
+        .collection("data")
+        .where("positionSelec", "array-contains", this.positionID)
         .get()
         .then(doc => {
           doc.forEach(element => {
@@ -299,7 +429,7 @@ export default {
             this.optionsPositionServer.sort((a, b) => {
               return a.label > b.label ? 1 : -1;
             });
-            this.positionID = this.optionsPositionServer[0].value;
+            this.positionIDServer = this.optionsPositionServer[0].value;
             this.$q.loading.hide();
           });
           this.loadDialogServer();

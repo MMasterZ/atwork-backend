@@ -1,9 +1,9 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
+import Vue from "vue";
+import VueRouter from "vue-router";
 
-import routes from './routes'
+import routes from "./routes";
 
-Vue.use(VueRouter)
+Vue.use(VueRouter);
 
 // Your web app's Firebase configuration
 var firebaseConfig = {
@@ -26,25 +26,18 @@ export const st = storage.ref();
 Vue.mixin({
   data() {
     return {
-      appVersion: "0.0.6",
-      SystemAccounts: this.$q.localStorage.getItem('systemAccountData'),
-      currentPage: this.$q.localStorage.getItem('currentPage'),
-      drawer: true,
+      appVersion: "0.1.00",
+      SystemAccounts: this.$q.localStorage.getItem("systemAccountData"),
+      currentPage: this.$q.localStorage.getItem("currentPage"),
+      drawer: true
     };
   },
-  methods: {
-
-  },
-  mounted() {
-
-  },
-  watch: {
-
-
-  }
+  methods: {},
+  mounted() {},
+  watch: {}
 });
 
-export default function ( /* { store, ssrContext } */ ) {
+export default function(/* { store, ssrContext } */) {
   const Router = new VueRouter({
     scrollBehavior: () => ({
       x: 0,
@@ -57,7 +50,7 @@ export default function ( /* { store, ssrContext } */ ) {
     // quasar.conf.js -> build -> publicPath
     mode: process.env.VUE_ROUTER_MODE,
     base: process.env.VUE_ROUTER_BASE
-  })
+  });
 
-  return Router
+  return Router;
 }

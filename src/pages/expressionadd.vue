@@ -47,6 +47,7 @@
                       @input="value => {file= value}"
                       style="height:30px;"
                       class="q-pt-lg"
+                      accept=".mp3"
                     ></q-input>
                   </td>
                 </tr>
@@ -159,7 +160,8 @@ export default {
       currentURL: "",
       url: "",
       file: "",
-      isFile: false
+      isFile: false,
+      editMode: false
     };
   },
   methods: {
@@ -179,7 +181,11 @@ export default {
                 value: element.id
               };
               this.situationArry.push(data);
+
               this.obj.situationKey = this.situationArry[0].value;
+              if (this.editMode) {
+                this.loadedit();
+              }
             });
           } else {
             this.obj.situationKey = "-";
@@ -233,6 +239,7 @@ export default {
         .then(doc => {
           this.obj = doc.data();
           this.$q.loading.hide();
+          // this.loadSituation()
         });
     },
     async deleteBtnTop() {
@@ -344,10 +351,28 @@ export default {
                 .put(this.file[0])
                 .then(() => {
                   this.$q.loading.hide();
-                  this.$router.push("/expression");
+                  st.child("audios/" + doc.id + ".mp3")
+                    .getDownloadURL()
+                    .then(res => {
+                      db.collection("Expression")
+                        .doc("draft")
+                        .collection("data")
+                        .doc(doc.id)
+                        .update({
+                          url: res
+                        });
+                      this.$router.push("/expression");
+                    });
                 });
             } else {
               _this.$q.loading.hide();
+              db.collection("Expression")
+                .doc("draft")
+                .collection("data")
+                .doc(doc.id)
+                .update({
+                  url: ""
+                });
               _this.$router.push("/expression");
             }
           });
@@ -362,6 +387,7 @@ export default {
           .set(this.obj)
           .then(() => {
             if (_this.file != "") {
+              console.log(this.$route.params.key);
               st.child("audios/" + this.$route.params.key + ".mp3")
                 .put(this.file[0])
                 .then(() => {
@@ -373,10 +399,33 @@ export default {
                     position: "bottom",
                     timeout: 1000
                   });
-                  this.$router.push("/expression");
+                  st.child("audios/" + this.$route.params.key + ".mp3")
+                    .getDownloadURL()
+                    .then(res => {
+                      console.log(res);
+                      console.log(this.$route.params.key);
+                      db.collection("Expression")
+                        .doc("draft")
+                        .collection("data")
+                        .doc(this.$route.params.key)
+                        .update({
+                          url: res
+                        })
+                        .then(() => {
+                          this.$router.push("/expression");
+                        });
+                    });
+                  // this.$router.push("/expression");
                 });
             } else {
               _this.$q.loading.hide();
+              db.collection("Expression")
+                .doc("draft")
+                .collection("data")
+                .doc(this.$route.params.key)
+                .update({
+                  url: ""
+                });
               this.$q.notify({
                 icon: "fas fa-check-circle",
                 message: "บันทึกข้อมูลเรียบร้อย",
@@ -393,9 +442,13 @@ export default {
   mounted() {
     if (this.$route.name == "expressionedit") {
       this.titlePage = "แก้ไขประโยค";
-      this.loadedit();
+      this.editMode = true;
+      this.loadPosition();
+    } else {
+      this.editMode = false;
+      this.loadPosition();
     }
-    this.loadPosition();
+
     this.$refs.order.focus();
   }
 };
