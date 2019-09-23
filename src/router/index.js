@@ -48,6 +48,15 @@ Vue.mixin({
         color: "secondary",
         timeout: 1000,
       });
+    },
+    loadingShow() {
+      this.$q.loading.show({
+        message: "รอสักครู่...",
+        delay: 400,
+      })
+    },
+    loadingHide() {
+      this.$q.loading.hide()
     }
   },
   mounted() {},

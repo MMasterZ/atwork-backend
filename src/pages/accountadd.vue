@@ -156,9 +156,7 @@ export default {
   },
   methods: {
     loadBsiness() {
-      this.$q.loading.show({
-        delay: 400 // ms
-      });
+      this.loadingShow();
       db.collection("Business")
         .where("status", "==", true)
         .get()
@@ -180,9 +178,7 @@ export default {
         });
     },
     loadDepartment() {
-      this.$q.loading.show({
-        delay: 400 // ms
-      });
+      this.loadingShow();
       this.departmentOptions = [];
       db.collection("Department")
 
@@ -235,7 +231,7 @@ export default {
           if (this.$route.name == "accountedit") {
             this.loadEdit();
           } else {
-            this.$q.loading.hide();
+            this.loadingHide();
           }
         });
     },

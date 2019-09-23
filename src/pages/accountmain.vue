@@ -186,9 +186,7 @@ export default {
       this.$router.push("/account/add/" + key);
     },
     loadBusiness() {
-      this.$q.loading.show({
-        delay: 400
-      });
+      this.loadingShow();
       db.collection("Business")
         .where("status", "==", true)
         .get()
@@ -240,14 +238,14 @@ export default {
                             ...element.data()
                           };
                           this.data.push(final);
-                          this.$q.loading.hide();
+                          this.loadingHide();
                         }
                       });
                   }
                 });
             });
           } else {
-            this.$q.loading.hide();
+            this.loadingHide();
           }
         });
     },
