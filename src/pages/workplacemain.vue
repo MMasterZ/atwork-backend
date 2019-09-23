@@ -113,6 +113,7 @@ export default {
     };
   },
   methods: {
+    // การเช็คค่า ถ้าเป็นจริงให้ ออกมาโชว์
     loadtrue() {
       db.collection("Business")
         .where("status", "==", true)
@@ -124,10 +125,9 @@ export default {
           });
         });
     },
+    // โหลดข้อมูลออกมาโชว์ของสถานประกอบการณ์
     loadData() {
-      this.$q.loading.show({
-        delay: 400 // ms
-      });
+      this.loadingShow();
       db.collection("Business")
         .where("status", "==", true)
         .onSnapshot(data => {
@@ -140,15 +140,15 @@ export default {
               ...dataKey,
               ...element.data()
             };
-
             this.data.push(datafirnal);
             this.data.sort((a, b) => {
               return a.name > b.name ? 1 : -1;
             });
-            this.$q.loading.hide();
+            this.loadingHide();
           });
         });
     },
+    // ปุ่มลบข้อมูลสถานประกอบการ แล้วเช็คว่า มีผู้ใช้งานอยู่ไหม ถ้าไม่มีลบได้ ถ้ามีลบไม่ได้
     deleteBtn(key) {
       db.collection("CustomerAccounts")
         .where("businessKey", "==", key)
@@ -168,13 +168,7 @@ export default {
                 persistent: true
               })
               .onOk(() => {
-                this.$q.notify({
-                  icon: "fas fa-exclamation-circle",
-                  message: "มีผู้ใช้งานอยู่ไม่สามารลบได้",
-                  color: "negative",
-                  position: "bottom",
-                  timeout: 1000
-                });
+                this.notifyRed("มีผู้ใช้งานอยู่ไม่สามารลบได้");
               });
           } else {
             this.$q
@@ -195,21 +189,16 @@ export default {
                   .update({
                     status: false
                   });
-                this.$q.notify({
-                  icon: "fas fa-check-circle",
-                  message: "ลบข้อมูลเรียบร้อย",
-                  color: "secondary",
-                  position: "bottom",
-                  timeout: 1000
-                });
+                this.notifyGreen("ลบข้อมูลเรียบร้อย");
               });
           }
         });
     },
-
+    // ปุ่มแก้ไขข้อมูล
     editBtn(key) {
       this.$router.push("/workplace/edit/" + key);
     },
+    // ปุ่มเพิ่มข้อมูล
     addBtn() {
       this.$router.push("/workplace/add");
     }

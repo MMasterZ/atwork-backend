@@ -138,10 +138,9 @@ export default {
     };
   },
   methods: {
+    // โหลดหน้าแก้ไข
     loadEdit() {
-      this.$q.loading.show({
-        delay: 400 // ms
-      });
+      this.loadingShow();
       db.collection("Business")
         .doc(this.$route.params.key)
         .get()
@@ -149,9 +148,10 @@ export default {
           this.business = doc.data();
           this.text = doc.data().name;
           this.textprovin = doc.data().provinceKey;
-          this.$q.loading.hide();
+          this.loadingHide();
         });
     },
+    // ปุ่มลบข้มมูลทั้งหมด
     deleteBtn() {
       let key = this.$route.params.key;
       db.collection("CustomerAccounts")
@@ -172,13 +172,7 @@ export default {
                 persistent: true
               })
               .onOk(() => {
-                this.$q.notify({
-                  icon: "fas fa-exclamation-circle",
-                  message: "มีผู้ใช้งานอยู่ไม่สามารลบได้",
-                  color: "negative",
-                  position: "bottom",
-                  timeout: 1000
-                });
+                this.notifyRed("มีผู้ใช้งานอยู่ไม่สามารลบได้");
               });
           } else {
             this.$q
@@ -199,18 +193,13 @@ export default {
                   .update({
                     status: false
                   });
-                this.$q.notify({
-                  icon: "fas fa-check-circle",
-                  message: "ลบข้อมูลเรียบร้อย",
-                  color: "secondary",
-                  position: "bottom",
-                  timeout: 1000
-                });
+                this.notifyGreen("ลบข้อมูลเรียบร้อย");
                 this.$router.push("/workplace");
               });
           }
         });
     },
+    // โหลดแผนกออกมาโชว์
     loadDepart() {
       db.collection("Department")
         .where("businessKey", "==", this.$route.params.key)
@@ -253,10 +242,9 @@ export default {
           this.departmentsArr = newDepart;
         });
     },
+    // โหลดจังหวัด
     loadData() {
-      this.$q.loading.show({
-        delay: 400 // ms
-      });
+      this.loadingShow();
       db.collection("Province")
         .get()
         .then(data => {
@@ -264,10 +252,12 @@ export default {
             this.selectProvince.push(element.id);
           });
           this.business.provinceKey = "กรุงเทพมหานคร";
-          this.$q.loading.hide();
+          this.loadingHide();
         });
     },
+    // ลบชื่อแผนก
     deletelog(index, key) {
+      // หน้าแก้ไข
       if (this.$route.name == "workplaceedit") {
         this.$q
           .dialog({
@@ -299,44 +289,30 @@ export default {
                     });
                   });
                 this.departmentsArr.splice(index, 1);
-                this.$q.notify({
-                  icon: "fas fa-check-circle",
-                  message: "ลบข้อมูลเรียบร้อย",
-                  color: "secondary",
-                  position: "bottom",
-                  timeout: 1000
-                });
+                this.notifyGreen("ลบข้อมูลเรียบร้อย");
               });
           });
-      } else {
+      }
+      // หน้าเพิ่ม
+      else {
         this.departmentsArr.splice(index, 1);
       }
     },
+    // ปุ่มบันทึกข้อมูล
     seveBtn() {
       this.$refs.workplace.validate();
       let departArr = [];
       if (this.$refs.workplace.hasError || this.business.name == "") {
-        this.$q.notify({
-          icon: "fas fa-exclamation-circle",
-          message: "กรุณากรอกชื่อสถานประกอบการ",
-          color: "negative",
-          position: "bottom",
-          timeout: 1000
-        });
+        this.notifyRed("กรุณากรอกชื่อสถานประกอบการ");
       } else {
+        // บันทึกแก้ไขข้อมูล
         if (this.$route.name == "workplaceedit") {
           if (
             this.text == this.business.name &&
             this.textprovin == this.business.provinceKey
           ) {
             this.isCheckLogin = false;
-            this.$q.notify({
-              icon: "fas fa-check-circle",
-              message: "บันทึกข้อมูลเรียบร้อย",
-              color: "secondary",
-              position: "bottom",
-              timeout: 1000
-            });
+            this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
             this.$router.push("/workplace");
           } else {
             this.isCheckLogin = true;
@@ -349,13 +325,7 @@ export default {
                     .update({
                       provinceKey: this.business.provinceKey
                     });
-                  this.$q.notify({
-                    icon: "fas fa-check-circle",
-                    message: "บันทึกข้อมูลเรียบร้อย",
-                    color: "secondary",
-                    position: "bottom",
-                    timeout: 1000
-                  });
+                  this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
                   this.$router.push("/workplace");
                 });
             } else if (this.textprovin == this.business.provinceKey) {
@@ -364,13 +334,7 @@ export default {
                 .get()
                 .then(doc => {
                   if (doc.size > 0) {
-                    this.$q.notify({
-                      icon: "fas fa-exclamation-circle",
-                      message: "ชื่อสถานประกอบการซ้ำ",
-                      color: "negative",
-                      position: "bottom",
-                      timeout: 1000
-                    });
+                    this.notifyRed("ชื่อสถานประกอบการซ้ำ");
                     this.isCheckLogin = false;
                   } else {
                     db.collection("Business")
@@ -378,13 +342,7 @@ export default {
                       .update({
                         name: this.business.name
                       });
-                    this.$q.notify({
-                      icon: "fas fa-check-circle",
-                      message: "บันทึกข้อมูลเรียบร้อย",
-                      color: "secondary",
-                      position: "bottom",
-                      timeout: 1000
-                    });
+                    this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
                     this.$router.push("/workplace");
                   }
                 });
@@ -392,51 +350,34 @@ export default {
             {
             }
           }
-        } else {
+        }
+        // บันทึกเพื่มข้อมูล
+        else {
           db.collection("Business")
             .where("name", "==", this.business.name)
             .get()
             .then(doc => {
               if (doc.size > 0) {
-                this.$q.notify({
-                  icon: "fas fa-exclamation-circle",
-
-                  message: "ชื่อสถานประกอบการซ้ำ",
-                  color: "negative",
-                  position: "bottom",
-                  timeout: 1000
-                });
+                this.notifyRed("ชื่อสถานประกอบการซ้ำ");
               } else {
                 if (this.departmentsArr.length > 1) {
                   db.collection("Business")
                     .add(this.business)
                     .then(doc => {
+                      // การวนไห้เรียงต่อการเข้าไปทีละตำแหน่ง
                       for (let xx = 0; xx < this.departmentsArr.length; xx++) {
                         this.departmentsArr[xx].businessKey = doc.id;
                         db.collection("Department").add(
                           this.departmentsArr[xx]
                         );
                       }
-                      this.$q.notify({
-                        icon: "fas fa-check-circle",
-                        message: "บันทึกข้อมูลเรียบร้อย",
-                        color: "secondary",
-                        position: "bottom",
-                        timeout: 1000
-                      });
-
+                      this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
                       this.$router.push("/workplace");
                     });
                 } else {
                   if (this.departments.name == "") {
                     this.isHasDepart = true;
-                    this.$q.notify({
-                      icon: "fas fa-exclamation-circle",
-                      message: "กรุณากรอกชื่อแผนก",
-                      color: "negative",
-                      position: "bottom",
-                      timeout: 1000
-                    });
+                    this.notifyRed("กรุณากรอกชื่อแผนก");
                   } else {
                     this.isHasDepart = false;
                   }
@@ -448,20 +389,17 @@ export default {
         }
       }
     },
+    // ปุ่มเพิ่มชื่อแผนก
     adddepart() {
       //  pages edit
       if (this.departments.name == "") {
         this.isHasDepart = true;
-        this.$q.notify({
-          icon: "fas fa-exclamation-circle",
-          message: "กรุณากรอกชื่อแผนก",
-          color: "negative",
-          position: "bottom",
-          timeout: 1000
-        });
+        this.notifyRed("กรุณากรอกชื่อแผนก");
       } else {
+        // หน้าแก้ไข
         this.isHasDepart = false;
         this.isDepartSeve = false;
+
         if (this.$route.name == "workplaceedit") {
           db.collection("Department")
             .where("businessKey", "==", this.$route.params.key)
@@ -469,20 +407,13 @@ export default {
             .get()
             .then(doc => {
               if (doc.size > 0) {
-                this.$q.notify({
-                  icon: "fas fa-exclamation-circle",
-                  message: "ชื่อแผนกช้ำ",
-                  color: "negative",
-                  position: "bottom",
-                  timeout: 1000
-                });
+                this.notifyRed("ชื่อแผนกช้ำ");
                 this.isDepartSeve = true;
               } else {
                 let dataKey = {
                   businessKey: this.$route.params.key,
                   name: this.departments.name
                 };
-
                 db.collection("Department")
                   .add(dataKey)
                   .then(doc => {
@@ -501,8 +432,9 @@ export default {
                   });
               }
             });
-          //  pages add
-        } else {
+        }
+        // หน้าเพิ่ม
+        else {
           let dataKey;
           if (this.departmentsArr.length == 0) {
             dataKey = {
@@ -533,13 +465,7 @@ export default {
           if (!checkDup) {
             this.departmentsArr.push(dataKey);
           } else {
-            this.$q.notify({
-              icon: "fas fa-exclamation-circle",
-              message: "ชื่อแผนกช้ำ",
-              color: "negative",
-              position: "bottom",
-              timeout: 1000
-            });
+            this.notifyRed("ชื่อแผนกช้ำ");
           }
 
           this.isDepartSeve = true;
@@ -547,6 +473,7 @@ export default {
         }
       }
     },
+    // ปุ่มย้อนกลับ
     backBtn() {
       this.$router.push("/workplace");
     }
