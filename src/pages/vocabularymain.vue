@@ -30,7 +30,14 @@
         >
           <q-tab name="draft" label="แบบร่าง" icon="fas fa-pen"></q-tab>
           <q-tab name="server" label="เซิร์ฟเวอร์" icon="fas fa-cloud"></q-tab>
-          <q-input filled class="desktop-only absolute-top-right" style="height:40px" label="ค้นหา">
+          <q-space />
+          <q-input
+            v-model="search"
+            filled
+            class="desktop-only"
+            style="height:40px"
+            placeholder="ค้นหา..."
+          >
             <template v-slot:append>
               <q-icon name="search" />
             </template>
@@ -128,7 +135,8 @@ export default {
         positions: ""
       },
       page: 1,
-      positionOptions: []
+      positionOptions: [],
+      search: ""
     };
   },
   methods: {
