@@ -168,7 +168,6 @@ export default {
     async seveBtn() {
       //
       this.loadingShow();
-
       //
       let microtime = await this.loadTime();
 
@@ -178,7 +177,9 @@ export default {
       if (this.$refs.vocabInput.hasError || this.$refs.meaning.hasError) {
         //กรณีใส่ข้อมูลไม่ครบ
         this.notifyRed("กรุณากรอกข้อมูลให้ครบ");
+
         this.loadingHide();
+
         return;
       } else {
         //บันทึกเวลาใน draft
@@ -194,12 +195,47 @@ export default {
                 .doc(key)
                 .update(this.general)
                 .then(() => {
+                  this.$q.loading.hide();
                   this.loadingHide();
                   this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
                   this.$router.push("/vocabulary");
                 });
             } else {
               // กรณีเพิ่มใหม่
+
+              db.collection("Vocabulary")
+                .doc("draft")
+                .collection("data")
+                .add(this.general)
+                .then(doc => {
+                  //นำไฟล์เสียงเข้าสู่ระบบ
+                  if (this.file != "") {
+                    st.child("audios/vocab/" + doc.id + ".mp3")
+                      .put(this.file[0])
+                      .then(() => {
+                        st.child("audios/vocab/" + doc.id + ".mp3")
+                          .getDownloadURL()
+                          .then(res => {
+                            db.collection("Vocabulary")
+                              .doc("draft")
+                              .collection("data")
+                              .doc(doc.id)
+                              .update({
+                                url: res
+                              })
+                              .then(() => {
+                                this.$q.loading.hide();
+                                this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+                                this.$router.push("/vocabulary");
+                              });
+                          });
+                      });
+                  } else {
+                  }
+                  this.$q.loading.hide();
+                  this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+                  this.$router.push("/vocabulary");
+                });
               this.db.vocabData.add(this.general).then(doc => {
                 //นำไฟล์เสียงเข้าสู่ระบบ
                 if (this.file != "") {
@@ -253,7 +289,6 @@ export default {
           this.db.vocab.set({
             saveDraft: microtime
           });
-
           this.db.vocabData
             .doc(key)
             .delete()
