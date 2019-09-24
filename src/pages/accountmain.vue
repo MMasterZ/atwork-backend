@@ -179,12 +179,15 @@ export default {
         data.toString().substring(6);
       return output;
     },
+
     selectData() {
       this.loadCustomer();
     },
+    //ปุ่มแอด เชื่อมไปหน้าแอด
     plusBtn(key) {
       this.$router.push("/account/add/" + key);
     },
+    //โหลดสถานประกอบการ
     loadBusiness() {
       this.loadingShow();
       db.collection("Business")
@@ -199,13 +202,16 @@ export default {
 
             this.optionsSelect.push(loadData);
           });
+          //เรียงตามตัวอักษร (สถานประกอบการ)
           this.optionsSelect.sort((a, b) => {
             return a.label - b.label ? 1 : -1;
           });
+          //โหลดข้อมูลสถานประกอบการมาไว้ในตัวเลือก
           this.dataObj.business = this.optionsSelect[0].value;
           this.loadCustomer();
         });
     },
+    //โหลดข้อมูลcustomer
     loadCustomer() {
       db.collection("CustomerAccounts")
         .where("businessKey", "==", this.dataObj.business)
@@ -216,12 +222,14 @@ export default {
           let departmentname = "";
           let Positionname = "";
 
+          //ถ้ามีข้อมูลให้โหลดตำแหน่ง
           if (doc.size > 0) {
             doc.forEach(element => {
               db.collection("Department")
                 .doc(element.data().departmentKey)
                 .get()
                 .then(amm => {
+                  //โหลดตำแหน่ง
                   if (amm.exists) {
                     db.collection("Position")
                       .doc(element.data().positionKey)
@@ -249,10 +257,12 @@ export default {
           }
         });
     },
+    //ปุ่มแก้ไข
     editBtn(key) {
       console.log(key);
       this.$router.push("/account/edit/" + key + "/" + this.dataObj.business);
     },
+    //ปุ่มลบ
     deleteBtn(key) {
       this.$q
         .dialog({
@@ -263,6 +273,7 @@ export default {
           persistent: true
         })
         .onOk(() => {
+          //กดปุ่มตกลง จะเปลี่ยนสถานะเป้น fals
           db.collection("CustomerAccounts")
             .doc(key)
             .update({
@@ -270,13 +281,7 @@ export default {
             })
             .then(() => {
               this.loadCustomer();
-              this.$q.notify({
-                message: "ลบข้อมูลเสร็จสิ้น",
-                color: "secondary",
-                position: "bottom",
-                timeout: 1000,
-                icon: "fas fa-check-circle"
-              });
+              this.notifyGreen(ลบข้อมูลเสร็จสิ้น);
             });
         });
     }

@@ -155,6 +155,7 @@ export default {
     };
   },
   methods: {
+    //โหลดสถานประกอบการที่มีสถานะเป็นture
     loadBsiness() {
       this.loadingShow();
       db.collection("Business")
@@ -169,6 +170,7 @@ export default {
 
             this.options.push(businessData);
           });
+          // เรียงสถานประกอบการตามตัวอักษร
           this.options.sort((a, b) => {
             return a.label - b.label ? 1 : -1;
           });
@@ -177,6 +179,7 @@ export default {
           this.loadDepartment();
         });
     },
+    //โหลดแผนก
     loadDepartment() {
       this.loadingShow();
       this.departmentOptions = [];
@@ -193,7 +196,7 @@ export default {
             };
             newDepart.push(departmentData);
           });
-          // การหาตำแหน่ง ของ ไม่ระบุ
+          // การหาแผนก ของ ไม่ระบุ
           let indexOf = newDepart
             .map(function(e) {
               return e.label;
@@ -213,6 +216,7 @@ export default {
           this.loadPosition();
         });
     },
+    //โหลดตำแหน่ง
     loadPosition() {
       this.positionOptions = [];
       db.collection("Position")
@@ -235,26 +239,25 @@ export default {
           }
         });
     },
+    //บันทึก
     saveData() {
       //   db.collection("CustomerAccounts").add(this.userObj);
       this.$refs.tel.validate(); // ช่องเบอร์โทร
       this.$refs.name.validate(); // ช่องชื่อพนักงาน
       this.$refs.surname.validate(); // ช่องนามสกุล
+      //ถ้าไม่ได้กรอกข้อมูล
       if (
         this.$refs.name.hasError ||
         this.$refs.surname.hasError ||
         this.$refs.tel.hasError
       ) {
-        this.$q.notify({
-          message: "กรุณากรอกข้อมูลให้ครบ",
-          color: "negative",
-          position: "bottom",
-          timeout: 1000,
-          icon: "fas fa-exclamation-circle"
-        });
+        //ขึ้นแจ้งเตือน
+        this.notifyRed("กรุณากรอกข้อมูลให้ครบ");
+
         return;
       } else {
         // this.isSaveData = true;
+        //บันทึกหน้าแอดผู้ใช้งาน
         if (this.$route.name == "accountadd") {
           this.userObj.password = this.userObj.tel.substring(8);
           this.userObj.tel = this.userObj.tel.replace(/-/g, "");
@@ -262,55 +265,38 @@ export default {
             .where("tel", "==", this.userObj.tel)
             .get()
             .then(doc => {
+              //ถ้าเบอร์โทรซ้ำ
               if (doc.size > 0) {
-                this.$q.notify({
-                  message: "เบอร์โทรศัพท์นี้มีผู้ใช้งานแล้ว",
-                  color: "negative",
-                  position: "bottom",
-                  timeout: 1000,
-                  icon: "fas fa-exclamation-circle"
-                });
+                this.notifyRed("เบอร์โทรศัพท์นี้มีผู้ใช้งานแล้ว");
+
                 this.isSaveData = false;
               } else {
+                //ถ้าเบอร์ไม่ซ้ำให้บันทึกแบบเอาขีดออก
                 this.userObj.tel = this.userObj.tel.replace(/-/g, "");
                 db.collection("CustomerAccounts").add(this.userObj);
-                this.$q.notify({
-                  message: "บันทึกข้อมูลเรียบร้อย",
-                  color: "secondary",
-                  position: "bottom",
-                  timeout: 1000,
-                  icon: "fas fa-exclamation-circle"
-                });
+                this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
 
                 this.$router.push("/account");
               }
             });
         } else {
+          //บันทึกหน้าแก้ไขผู้ใช้งาน
+
+          //ถ้ารหัสไม่ครบ 4 ตัวขึ้นแจ้งเตือน
           if (this.userObj.password.length != 4) {
-            this.$q.notify({
-              message: "กรุณาใส่รหัสผ่าน 4 หลัก",
-              color: "negative",
-              position: "bottom",
-              timeout: 1000,
-              icon: "fas fa-exclamation-circle"
-            });
+            this.notifyRed("กรุณาใส่รหัสผ่าน 4 หลัก");
+
             return;
           }
           this.userObj.tel = this.userObj.tel.replace(/-/g, "");
-
+          //เบอร์โทรซ้ำ
           if (this.oldPhoneNumber != this.userObj.tel) {
             db.collection("CustomerAccounts")
               .where("tel", "==", this.userObj.tel)
               .get()
               .then(doc => {
                 if (doc.size) {
-                  this.$q.notify({
-                    message: "เบอร์โทรศัพท์นี้มีผู้ใช้งานแล้ว",
-                    color: "negative",
-                    position: "bottom",
-                    timeout: 1000,
-                    icon: "fas fa-exclamation-circle"
-                  });
+                  this.notifyRed("เบอร์โทรศัพท์นี้มีผู้ใช้งานแล้ว");
                 } else {
                   db.collection("CustomerAccounts")
                     .doc(this.$route.params.userkey)
@@ -318,14 +304,8 @@ export default {
                   db.collection("CustomerAccounts")
                     .doc(this.$route.params.userkey)
                     .update({ tel: this.userObj.tel.replace(/-/g, "") });
-                  this.$q.notify({
-                    message: "บันทึกข้อมูลเรียบร้อย",
-                    color: "secondary",
-                    position: "bottom",
-                    timeout: 1000,
-                    icon: "fas fa-check-circle"
-                  });
-                  this.$router.push("/account");
+
+                  this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
                 }
               });
           } else {
@@ -335,21 +315,17 @@ export default {
             db.collection("CustomerAccounts")
               .doc(this.$route.params.userkey)
               .update({ tel: this.userObj.tel.replace(/-/g, "") });
-            this.$q.notify({
-              message: "บันทึกข้อมูลเรียบร้อย",
-              color: "secondary",
-              position: "bottom",
-              timeout: 1000,
-              icon: "fas fa-check-circle"
-            });
+            this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
             this.$router.push("/account");
           }
         }
       }
     },
+    //ปุ่มยกเลิก
     cencel() {
       this.$router.push("/account");
     },
+    //โหลดข้อมูลแก้ไข
     loadEdit() {
       db.collection("CustomerAccounts")
         .doc(this.$route.params.userkey)
@@ -360,7 +336,7 @@ export default {
           this.oldPhoneNumber = this.userObj.tel;
         });
     },
-
+    //ปุ่มลบ
     deleteBtn() {
       let key = this.$route.params.userkey;
       this.$q
@@ -379,13 +355,8 @@ export default {
             })
             .then(() => {
               // this.loadCustomer();
-              this.$q.notify({
-                message: "ลบข้อมูลเสร็จสิ้น",
-                color: "secondary",
-                position: "bottom",
-                timeout: 1000,
-                icon: "fas fa-check-circle"
-              });
+              this.notifyGreen("ลบข้อมูลเสร็จสิ้น");
+
               this.$router.push("/account");
             });
         });
