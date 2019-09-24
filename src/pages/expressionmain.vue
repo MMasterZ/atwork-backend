@@ -22,22 +22,20 @@
         </div>
       </q-toolbar>
     </div>
-    <div class="q-mx-md q-mt-md">
-      <div>
-        <q-tabs
-          v-model="tab"
-          inline-label
-          class="bg-grey-2 text-grey-7 shadow-2"
-          align="left"
-          active-color="secondary"
-          dense
-          style="border-bottom:1px solid #757575"
-        >
-          <q-tab name="draft" label="แบบร่าง" icon="fas fa-pen" @click="draftShow()"></q-tab>
-          <q-tab name="server" label="เซิร์ฟเวอร์" icon="fas fa-cloud" @click="serverShow()"></q-tab>
-        </q-tabs>
-      </div>
+    <div class="q-pa-md-md">
       <div class="bg-grey-2">
+        <div>
+          <q-tabs
+            v-model="tab"
+            inline-label
+            class="text-grey-7 shadow-2"
+            align="left"
+            active-color="secondary"
+          >
+            <q-tab name="draft" label="แบบร่าง" icon="fas fa-pen" @click="draftShow()"></q-tab>
+            <q-tab name="server" label="เซิร์ฟเวอร์" icon="fas fa-cloud" @click="serverShow()"></q-tab>
+          </q-tabs>
+        </div>
         <div class="row q-pa-md">
           <div class="col-md-6 col-sm-9 col-xs-9">
             <q-select

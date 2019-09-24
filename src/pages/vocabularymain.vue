@@ -27,11 +27,10 @@
           class="bg-grey-2 text-grey-7 shadow-2 relative-position"
           align="left"
           active-color="secondary"
-          style="border-bottom:1px solid #757575;height:60px"
         >
           <q-tab name="draft" label="แบบร่าง" icon="fas fa-pen"></q-tab>
           <q-tab name="server" label="เซิร์ฟเวอร์" icon="fas fa-cloud"></q-tab>
-          <q-input filled class="desktop-only absolute-top-right" label="ค้นหา">
+          <q-input filled class="desktop-only absolute-top-right" style="height:40px" label="ค้นหา">
             <template v-slot:append>
               <q-icon name="search" />
             </template>
