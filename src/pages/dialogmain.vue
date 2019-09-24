@@ -15,7 +15,7 @@
             round
             icon="fas fa-sync-alt"
             class="text-body1 text-white"
-            :disable="tabShow == 'server'"
+            :disable="tabShow == 'server' || isSync"
             :class="{'bg-grey-7' : tabShow == 'server'}"
           />
         </div>
@@ -206,19 +206,22 @@ export default {
     return {
       tabShow: "draft",
       addData: false,
+      // ตัวเลือกในหน้า แบบร่าง
       positionID: "",
       optionsPosition: [],
       dialogList: [],
+      // ตัวเลือกในหน้า เซิร์ฟเวอร์
       positionIDServer: "",
       optionsPositionServer: [],
       dialogListServer: [],
-      isDraftMode: false
+
+      isDraftMode: false,
+      isSync: false
     };
   },
   methods: {
     // ซิงค์ข้อมูลบน draft ไปยัง server
     async syncBtn() {
-      console.log("test");
       //update server time
       let api = "https://api.winner-english.com/data/api/gettime.php";
       let response = await axios.get(api);
@@ -298,6 +301,7 @@ export default {
                         .doc(data4.id)
                         .set(data4.data())
                         .then(() => {
+                          this.checkSyncData();
                           this.loadingHide();
                         });
                     });
@@ -390,19 +394,25 @@ export default {
     // โหลดข้อมูล บทสนทนา จากฝั่ง draft
     loadDialog() {
       this.dialogList = [];
+      this.loadingShow();
       db.collection("Dialog")
         .doc("draft")
         .collection("data")
         .where("positionSelec", "array-contains", this.positionID)
         .get()
         .then(doc => {
-          doc.forEach(element => {
-            let dialogKey = { key: element.id };
-            let final = { ...dialogKey, ...element.data() };
+          if (doc.size != 0) {
+            doc.forEach(element => {
+              let dialogKey = { key: element.id };
+              let final = { ...dialogKey, ...element.data() };
 
-            this.dialogList.push(final);
+              this.dialogList.push(final);
+              this.loadingHide();
+            });
+          } else {
+            // console.log("ไม่มีข้อมูล");
             this.loadingHide();
-          });
+          }
         });
     },
     // โหลดข้อมูล ตำแหน่ง ของฝั่ง server
@@ -423,34 +433,62 @@ export default {
               return a.label > b.label ? 1 : -1;
             });
             this.positionIDServer = this.optionsPositionServer[0].value;
-            this.$q.loading.hide();
+            this.loadingHide();
           });
           this.loadDialogServer();
         });
     },
     // โหลดข้อมูล บทสนทนา จากฝั่ง server
     loadDialogServer() {
-      this.dialogList = [];
+      this.dialogListServer = [];
+      this.loadingShow();
       db.collection("Dialog")
         .doc("server")
         .collection("data")
         .where("positionSelec", "array-contains", this.positionIDServer)
         .get()
         .then(doc => {
-          doc.forEach(element => {
-            let dialogKey = { key: element.id };
-            let final = { ...dialogKey, ...element.data() };
+          if (doc.size != 0) {
+            doc.forEach(element => {
+              let dialogKey = { key: element.id };
+              let final = { ...dialogKey, ...element.data() };
 
-            this.dialogListServer.push(final);
+              this.dialogListServer.push(final);
+              this.loadingHide();
+            });
+          } else {
+            // console.log("ไม่มีข้อมูล");
             this.loadingHide();
-            // this.$q.loading.hide();
-          });
+          }
+        });
+    },
+    // เช็ค การซิงข้อมูลของบทสนทนา
+    checkSyncData() {
+      let saveDraft = "";
+      let saveServer = "";
+      db.collection("Dialog")
+        .doc("draft")
+        .get()
+        .then(doc => {
+          saveDraft = doc.data().saveDraft;
+          db.collection("Dialog")
+            .doc("server")
+            .get()
+            .then(doc => {
+              saveServer = doc.data().saveServer;
+              // เมื่อค่า ดราฟ มีค่าเวลาเซิฟมากกว่า จะสามารถซิงค์ข้อมูลได้
+              if (saveDraft <= saveServer) {
+                // เมื่อค่าเวลาน้อยกว่าหรือเท่ากับจะไม่สามารถซิงค์ข้อมูลได้
+                this.isSync = true;
+              }
+            });
         });
     }
   },
   mounted() {
     this.loadPosition();
     this.loadPositionServer();
+    this.checkSyncData();
   }
 };
 </script>

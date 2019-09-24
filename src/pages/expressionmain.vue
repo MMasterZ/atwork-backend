@@ -28,7 +28,7 @@
           <q-tabs
             v-model="tab"
             inline-label
-            class="text-grey-7 shadow-2"
+            class="text-blue-grey-10 shadow-2"
             align="left"
             active-color="secondary"
           >
