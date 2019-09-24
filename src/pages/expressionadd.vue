@@ -53,7 +53,6 @@
                 </tr>
               </table>
             </div>
-
             <div v-if="isFile">
               <div class="row justify-between">
                 <div class="q-my-xs q-pt-sm text-secondary">
@@ -78,7 +77,6 @@
             </div>
           </div>
         </div>
-
         <div class="col-md-6 col-xs-12 q-pa-sm">
           <q-select
             outlined
@@ -121,7 +119,6 @@
           ></q-input>
         </div>
       </div>
-
       <div class="removeErrorText2">
         <div class="col-12 q-pa-sm" align="center">
           <q-btn @click="cencel()" label="ยกเลิก" class="q-mx-sm q-mt-md" style="width:120px"></q-btn>
@@ -136,11 +133,9 @@
     </div>
   </div>
 </template>
-
 <script>
 import { db } from "../router/index.js";
 import { st } from "../router/index.js";
-
 export default {
   data() {
     return {
@@ -154,7 +149,6 @@ export default {
         positionKey: "",
         situationKey: ""
       },
-
       positionArry: [],
       situationArry: [],
       currentURL: "",
@@ -165,10 +159,9 @@ export default {
     };
   },
   methods: {
+    // โหลดสถานการณ์
     loadSituation() {
-      this.$q.loading.show({
-        delay: 400 // ms
-      });
+      this.loadingShow();
       db.collection("Situation")
         .where("positionKey", "==", this.obj.positionKey)
         .get()
@@ -181,7 +174,6 @@ export default {
                 value: element.id
               };
               this.situationArry.push(data);
-
               this.obj.situationKey = this.situationArry[0].value;
               if (this.editMode) {
                 this.loadedit();
@@ -190,13 +182,12 @@ export default {
           } else {
             this.obj.situationKey = "-";
           }
-          this.$q.loading.hide();
+          this.loadingHide();
         });
     },
+    // โหลดตำแหน่ง
     loadPosition() {
-      this.$q.loading.show({
-        delay: 400 // ms
-      });
+      this.loadingShow();
       db.collection("Position")
         .get()
         .then(doc => {
@@ -216,21 +207,19 @@ export default {
           this.loadSituation();
         });
     },
+    // โหลดเสียง หน้าแก้ไข
     async loadedit() {
       try {
         let doc = await st
           .child("audios/" + this.$route.params.key + ".mp3")
           .getDownloadURL();
-
         this.url = new Audio(doc);
         this.isFile = true;
       } catch (err) {
         this.isFile = false;
       }
-
-      this.$q.loading.show();
+      this.loadingShow();
       //check audio exists
-
       db.collection("Expression")
         .doc("draft")
         .collection("data")
@@ -238,15 +227,14 @@ export default {
         .get()
         .then(doc => {
           this.obj = doc.data();
-          this.$q.loading.hide();
+          this.loadingHide();
           // this.loadSituation()
         });
     },
+    // ลบข้อมูลทั้งหมด
     async deleteBtnTop() {
       let api = "https://api.winner-english.com/data/api/gettime.php";
-
       let response = await axios.get(api);
-
       let date = response.data[0].date;
       let microtime = response.data[0].microtime;
       this.$q
@@ -271,6 +259,7 @@ export default {
           this.$router.push("/expression");
         });
     },
+    // ลบเสียง
     async deleteBtn() {
       this.$q
         .dialog({
@@ -287,21 +276,21 @@ export default {
             });
         });
     },
+    // ปุ่มย้อนกลับ
     cencel() {
       this.$router.push("/expression");
     },
+    // เล่นเสียง
     playsound(audio) {
       if (this.currentURL != "") {
         this.currentURL.pause();
       }
-
       setTimeout(() => {
         audio.play();
       }, 1000);
-
       this.currentURL = audio;
     },
-
+    // บันทึกข้อมูล มีหน้าเพิ่ม และ แก้ไข
     async save() {
       let _this = this;
       this.$refs.order.validate();
@@ -312,24 +301,15 @@ export default {
         this.$refs.sentenceEnglish.hasError ||
         this.$refs.sentenceThai.hasError
       ) {
-        this.$q.notify({
-          icon: "fas fa-exclamation-circle",
-          message: "กรุณากรอกข้อมูลให้ครบ",
-          color: "negative",
-          position: "bottom",
-          timeout: 1000
-        });
+        this.notifyRed("กรุณากรอกข้อมูลให้ครบ");
         return;
       }
       let api = "https://api.winner-english.com/data/api/gettime.php";
-
       let response = await axios.get(api);
-
       let date = response.data[0].date;
       let microtime = response.data[0].microtime;
-
+      // บันทึกหน้าเพิ่ม
       if (this.$route.name == "expressionadd") {
-        this.$q.loading.show();
         db.collection("Expression")
           .doc("draft")
           .collection("data")
@@ -337,15 +317,8 @@ export default {
           .then(doc => {
             db.collection("Expression")
               .doc("draft")
-
               .set({ saveDraft: microtime });
-            this.$q.notify({
-              icon: "fas fa-check-circle",
-              message: "บันทึกข้อมูลเรียบร้อย",
-              color: "secondary",
-              position: "bottom",
-              timeout: 1000
-            });
+            this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
             if (_this.file != "") {
               st.child("audios/" + doc.id + ".mp3")
                 .put(this.file[0])
@@ -376,7 +349,9 @@ export default {
               _this.$router.push("/expression");
             }
           });
-      } else {
+      }
+      // บันทึกหน้าแก้ไข
+      else {
         db.collection("Expression")
           .doc("draft")
           .set({ saveDraft: microtime });
@@ -387,23 +362,14 @@ export default {
           .set(this.obj)
           .then(() => {
             if (_this.file != "") {
-              console.log(this.$route.params.key);
               st.child("audios/" + this.$route.params.key + ".mp3")
                 .put(this.file[0])
                 .then(() => {
                   this.$q.loading.hide();
-                  this.$q.notify({
-                    icon: "fas fa-check-circle",
-                    message: "บันทึกข้อมูลเรียบร้อย",
-                    color: "secondary",
-                    position: "bottom",
-                    timeout: 1000
-                  });
+                  this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
                   st.child("audios/" + this.$route.params.key + ".mp3")
                     .getDownloadURL()
                     .then(res => {
-                      console.log(res);
-                      console.log(this.$route.params.key);
                       db.collection("Expression")
                         .doc("draft")
                         .collection("data")
@@ -418,7 +384,7 @@ export default {
                   // this.$router.push("/expression");
                 });
             } else {
-              _this.$q.loading.hide();
+              this.loadingHide();
               db.collection("Expression")
                 .doc("draft")
                 .collection("data")
@@ -426,13 +392,7 @@ export default {
                 .update({
                   url: ""
                 });
-              this.$q.notify({
-                icon: "fas fa-check-circle",
-                message: "บันทึกข้อมูลเรียบร้อย",
-                color: "secondary",
-                position: "bottom",
-                timeout: 1000
-              });
+              this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
               _this.$router.push("/expression");
             }
           });
@@ -448,7 +408,6 @@ export default {
       this.editMode = false;
       this.loadPosition();
     }
-
     this.$refs.order.focus();
   }
 };
