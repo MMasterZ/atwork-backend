@@ -13,7 +13,7 @@
             round
             icon="fas fa-cloud-upload-alt"
             :disable="tab!='draft'?true:false || !syncData"
-            :class="{ 'bg-grey-7' : tab!='draft' , 'bg-secondary' : tab=='draft'}"
+            :class="{ '' : tab!='draft' , '' : tab=='draft'}"
             class="q-mr-sm text-body1 text-grey-2"
             size="md"
             @click="syncNow()"
@@ -27,11 +27,7 @@
           <q-tabs
             v-model="tab"
             inline-label
-<<<<<<< HEAD
-            class="shadow-2 text-blue-grey-10"
-=======
             class="text-blue-grey-10 shadow-2"
->>>>>>> master
             align="left"
             active-color="secondary"
           >

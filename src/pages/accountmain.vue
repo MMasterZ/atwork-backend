@@ -281,7 +281,7 @@ export default {
             })
             .then(() => {
               this.loadCustomer();
-              this.notifyGreen(ลบข้อมูลเสร็จสิ้น);
+              this.notifyGreen("ลบข้อมูลเสร็จสิ้น");
             });
         });
     }
