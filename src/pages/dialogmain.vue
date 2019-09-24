@@ -13,15 +13,14 @@
             size="md"
             color="secondary"
             round
-            icon="fas fa-sync-alt"
+            icon="fas fa-cloud-upload-alt"
             class="text-body1 text-white"
             :disable="tabShow == 'server' || isSync"
-            :class="{'bg-grey-7' : tabShow == 'server'}"
+            :class="{'bg-grey-7 ' : tabShow == 'server'}"
           />
         </div>
       </q-toolbar>
     </div>
-
     <div class="q-pa-md-md">
       <div class="bg-grey-2">
         <div>
@@ -129,6 +128,7 @@
                 map-options
               />
             </div>
+
             <div class="col-md-6 col-xs-12 self-center" align="right">
               <q-btn
                 @click="addBtn()"
@@ -380,13 +380,12 @@ export default {
               label: element.data().name,
               value: element.id
             };
-
             this.optionsPosition.push(data);
             this.optionsPosition.sort((a, b) => {
               return a.label > b.label ? 1 : -1;
             });
             this.positionID = this.optionsPosition[0].value;
-            this.$q.loading.hide();
+            this.loadingHide();
           });
           this.loadDialog();
         });
@@ -405,7 +404,6 @@ export default {
             doc.forEach(element => {
               let dialogKey = { key: element.id };
               let final = { ...dialogKey, ...element.data() };
-
               this.dialogList.push(final);
               this.loadingHide();
             });
@@ -427,7 +425,6 @@ export default {
               label: element.data().name,
               value: element.id
             };
-
             this.optionsPositionServer.push(data);
             this.optionsPositionServer.sort((a, b) => {
               return a.label > b.label ? 1 : -1;
