@@ -48,7 +48,6 @@
               emit-value
             ></q-select>
           </div>
-
           <div align="right" class="col-md-6 col-sm-3 col-xs-3 q-py-sm">
             <q-btn
               flat
@@ -57,11 +56,10 @@
               icon="fas fa-plus"
               class="q-mx-sm text-body1 text-grey-2"
               :class="{ 'bg-grey-7' : tab!='draft' , 'bg-secondary' : tab=='draft'}"
-              @click="plusBtn(obj.positions)"
+              @click="addBtn(obj.positions)"
               size="md"
               :disable="tab!='draft'?true:false"
             />
-
             <q-btn
               class="text-body1 text-grey-2 q-ml-sm mobile-hide"
               :class="{ 'bg-grey-7' : tab!='draft' , 'bg-secondary' : tab=='draft'}"
@@ -75,7 +73,6 @@
             />
           </div>
         </div>
-
         <div v-for="(item,index ) in    expressionList " :key="index" class="q-px-md q-pb-md">
           <table
             style="border: 1px solid grey;width:100%; border-collapse: collapse; "
@@ -97,7 +94,6 @@
                   />
                 </div>
               </td>
-
               <td style="width:60px; border: 1px solid grey" align="center">{{item.orderid}}</td>
               <td @click="editBtn(item.key)" class="rounded-borders hoverpoint">
                 <span class="q-px-xs">{{item.sentenceEnglish}}</span>
@@ -111,7 +107,6 @@
               </td>
             </tr>
           </table>
-
           <q-card class="mobile-only">
             <q-card-section class="bg-blue-grey-10 text-grey-2">
               <div class="row">
@@ -140,9 +135,6 @@
     </div>
   </div>
 </template>
-
-
-
 <script>
 import { db } from "../router/index.js";
 import { st } from "../router/index.js";
@@ -204,15 +196,8 @@ export default {
                   .doc(data2.id)
                   .set(data2.data());
               });
-
               //notice finish process
-              this.$q.notify({
-                icon: "fas fa-check-circle",
-                message: "อัพโหลดข้อมูลเรียบร้อย",
-                color: "secondary",
-                position: "bottom",
-                timeout: 1000
-              });
+              this.notifyGreen("อัพโหลดข้อมูลเรียบร้อย");
               this.checkSync();
             });
         });
@@ -240,11 +225,10 @@ export default {
           }
         });
     },
+    // โหลดข้อมูลออกมาโชว์
     loadData() {
       this.$q.localStorage.set("currentposition", this.obj.positions);
-      this.$q.loading.show({
-        delay: 400
-      });
+      this.loadingShow();
       db.collection("Expression")
         .doc(this.tab)
         .collection("data")
@@ -253,7 +237,6 @@ export default {
         .then(doc => {
           {
             this.expressionList = [];
-
             if (doc.size > 0) {
               doc.forEach(async element => {
                 try {
@@ -293,25 +276,25 @@ export default {
                 }
               });
             } else {
-              this.$q.loading.hide();
+              this.loadingHide();
             }
           }
         });
     },
+    // แบบร่าง
     draftShow() {
       this.tab = "draft";
       this.loadData();
     },
+    // เชิร์ฟเวอร์
     serverShow() {
       this.tab = "server";
       this.loadData();
     },
+    // โหลดตำแหน่ง
     loadPosition() {
-      this.$q.loading.show({
-        delay: 400
-      });
+      this.loadingShow();
       db.collection("Position")
-
         .orderBy("orderid")
         .get()
         .then(doc => {
@@ -331,6 +314,7 @@ export default {
           this.loadData();
         });
     },
+    // เล่นเสียง
     playsound(audio) {
       if (this.currentURL != "") {
         this.currentURL.pause();
@@ -341,10 +325,11 @@ export default {
 
       this.currentURL = audio;
     },
-    plusBtn(key) {
+    // ปุ่มเพิ่มข้อมูล
+    addBtn(key) {
       this.$router.push("/expression/add");
     },
-
+    // แก้ไข
     editBtn(key) {
       this.$router.push("/expression/edit/" + key);
     }

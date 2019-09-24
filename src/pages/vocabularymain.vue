@@ -80,7 +80,7 @@
         </div>
       </div>
       <div class="q-pb-lg flex flex-center">
-        <!-- <q-pagination v-model="page" :max="6" color="blue-grey-10" :direction-links="true" /> -->
+        <q-pagination v-model="page" :max="6" color="blue-grey-10" :direction-links="true" />
       </div>
       <div class="row">
         <div
@@ -116,7 +116,7 @@
       </div>
 
       <div class="q-pt-lg q-pb-md flex flex-center">
-        <!-- <q-pagination v-model="page" :max="6" color="blue-grey-10" :direction-links="true" /> -->
+        <q-pagination v-model="page" :max="6" color="blue-grey-10" :direction-links="true" />
       </div>
     </div>
   </q-page>
@@ -140,6 +140,8 @@ export default {
     };
   },
   methods: {
+    // โหลดข้อมูล
+
     loadData() {
       db.collection("Vocabulary")
         .doc("draft")
@@ -163,12 +165,14 @@ export default {
             this.vocabularyList.sort((a, b) => {
               return a.vocab > b.vocab ? 1 : -1;
             });
+            this.loadingHide();
           } else {
           }
         });
     },
     //************************ โหลดตำแหน่ง
     loadPosition() {
+      this.loadingShow();
       db.collection("Position")
         .get()
         .then(doc => {
@@ -192,18 +196,23 @@ export default {
           this.loadData();
         });
     },
+    // เล่นเสียง
+
     playsound(url) {
       let audio = new Audio(url);
       setTimeout(() => {
         audio.play();
       }, 1000);
     },
+    // ปุ่มแก้ไข
     editBtn(key) {
       this.$router.push("/vocabulary/edit/" + key);
     },
+    // ปุ่มเพิ่ม
     addBtn() {
       this.$router.push("/vocabulary/add");
     },
+    //  ซิงเซิฟเวอร์
     async syncBtn() {
       //update server time
       let api = "https://api.winner-english.com/data/api/gettime.php";
