@@ -125,57 +125,65 @@ export default {
       isFile: false,
       file: "",
       isEditMode: false,
-      titlePage: "เพิ่มคำศัพท์"
+      titlePage: "เพิ่มคำศัพท์",
+      db: {
+        position: db.collection("Position"),
+        vocab: db.collection("Vocabulary").doc("draft"),
+        vocabData: db
+          .collection("Vocabulary")
+          .doc("draft")
+          .collection("data")
+      },
+      isDeleteSound: false
     };
   },
   methods: {
     //************************* */ โหลดตำแหน่ง
     loadPosition() {
-      db.collection("Position")
-        .get()
-        .then(doc => {
-          let temp = {
-            value: "ทั่วไป",
-            label: "***ทั่วไป***"
-          };
-          this.generalPosition.push(temp);
-          this.general.positionKey = temp.value;
-          doc.forEach(element => {
-            let dataKey = {
-              value: element.id,
-              label: element.data().name
-            };
+      this.loadingShow();
 
-            this.generalPosition.push(dataKey);
-          });
+      this.db.position.get().then(doc => {
+        let temp = {
+          value: "ทั่วไป",
+          label: "***ทั่วไป***"
+        };
+        this.generalPosition.push(temp);
+        this.general.positionKey = temp.value;
+        doc.forEach(element => {
+          let dataKey = {
+            value: element.id,
+            label: element.data().name
+          };
+
+          this.generalPosition.push(dataKey);
         });
+
+        this.loadingHide();
+      });
     },
     backBtn() {
       this.$router.push("/vocabulary");
     },
     //กดบันทึก
     async seveBtn() {
-      this.$q.loading.show();
-      let api = "https://api.winner-english.com/data/api/gettime.php";
-      let response = await axios.get(api);
-      let date = response.data[0].date;
-      let microtime = response.data[0].microtime;
+      //
+      this.loadingShow();
+      //
+      let microtime = await this.loadTime();
+
+      //
       this.$refs.vocabInput.validate();
       this.$refs.meaning.validate();
       if (this.$refs.vocabInput.hasError || this.$refs.meaning.hasError) {
         //กรณีใส่ข้อมูลไม่ครบ
-        this.$q.notify({
-          icon: "fas fa-exclamation-circle",
-          message: "กรุณากรอกข้อมูลให้ครบ",
-          color: "negative",
-          position: "bottom",
-          timeout: 1000
-        });
+        this.notifyRed("กรุณากรอกข้อมูลให้ครบ");
+
+        this.loadingHide();
+
         return;
       } else {
         //บันทึกเวลาใน draft
-        db.collection("Vocabulary")
-          .doc("draft")
+        this.db.vocab
           .set({
             saveDraft: microtime
           })
@@ -183,24 +191,18 @@ export default {
             if (this.isEditMode) {
               // กรณี่ edit mode
               let key = this.$route.params.key;
-              db.collection("Vocabulary")
-                .doc("draft")
-                .collection("data")
+              this.db.vocabData
                 .doc(key)
                 .update(this.general)
                 .then(() => {
                   this.$q.loading.hide();
-                  this.$q.notify({
-                    icon: "fas fa-check-circle",
-                    message: "บันทึกข้อมูลเรียบร้อย",
-                    color: "secondary",
-                    position: "bottom",
-                    timeout: 1000
-                  });
+                  this.loadingHide();
+                  this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
                   this.$router.push("/vocabulary");
                 });
             } else {
               // กรณีเพิ่มใหม่
+
               db.collection("Vocabulary")
                 .doc("draft")
                 .collection("data")
@@ -223,13 +225,7 @@ export default {
                               })
                               .then(() => {
                                 this.$q.loading.hide();
-                                this.$q.notify({
-                                  icon: "fas fa-check-circle",
-                                  message: "บันทึกข้อมูลเรียบร้อย",
-                                  color: "secondary",
-                                  position: "bottom",
-                                  timeout: 1000
-                                });
+                                this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
                                 this.$router.push("/vocabulary");
                               });
                           });
@@ -237,25 +233,45 @@ export default {
                   } else {
                   }
                   this.$q.loading.hide();
-                  this.$q.notify({
-                    icon: "fas fa-check-circle",
-                    message: "บันทึกข้อมูลเรียบร้อย",
-                    color: "secondary",
-                    position: "bottom",
-                    timeout: 1000
-                  });
+                  this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
                   this.$router.push("/vocabulary");
                 });
+              this.db.vocabData.add(this.general).then(doc => {
+                //นำไฟล์เสียงเข้าสู่ระบบ
+                if (this.file != "") {
+                  st.child("audios/vocab/" + doc.id + ".mp3")
+                    .put(this.file[0])
+                    .then(() => {
+                      st.child("audios/vocab/" + doc.id + ".mp3")
+                        .getDownloadURL()
+                        .then(res => {
+                          this.db.vocabData
+                            .doc(doc.id)
+                            .update({
+                              url: res
+                            })
+                            .then(() => {
+                              this.loadingHide();
+                              this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+                              this.$router.push("/vocabulary");
+                            });
+                        });
+                    });
+                } else {
+                }
+                this.loadingHide();
+                this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+                this.$router.push("/vocabulary");
+              });
             }
           });
       }
     },
     //ลบคำศัพท์
     async deleteBtn() {
-      let api = "https://api.winner-english.com/data/api/gettime.php";
-      let response = await axios.get(api);
-      let date = response.data[0].date;
-      let microtime = response.data[0].microtime;
+      this.loadingShow();
+
+      let microtime = await this.loadTime();
       let key = this.$route.params.key;
       this.$q
         .dialog({
@@ -270,34 +286,25 @@ export default {
           persistent: true
         })
         .onOk(() => {
-          db.collection("Vocabulary")
-            .doc("draft")
-            .set({
-              saveDraft: microtime
-            });
-          db.collection("Vocabulary")
-            .doc("draft")
-            .collection("data")
+          this.db.vocab.set({
+            saveDraft: microtime
+          });
+          this.db.vocabData
             .doc(key)
             .delete()
             .then(() => {
-              this.$q.notify({
-                icon: "fas fa-check-circle",
-                message: "ลบข้อมูลเรียบร้อย",
-                color: "secondary",
-                position: "bottom",
-                timeout: 1000
-              });
+              this.loadingHide();
+              this.notifyGreen("ลบข้อมูลเรียบร้อย");
               this.$router.push("/vocabulary");
             });
         });
     },
     ///โหลดข้อมูลสำหรับ แก้ไขคำศัพท์
     loadData() {
+      this.loadingShow();
+
       let key = this.$route.params.key;
-      db.collection("Vocabulary")
-        .doc("draft")
-        .collection("data")
+      this.db.vocabData
         .doc(key)
         .get()
         .then(data => {
@@ -305,6 +312,8 @@ export default {
           if (this.general.url != "") {
             this.isFile = true;
           }
+
+          this.loadingHide();
         });
     },
     //เล่นเสียง
@@ -316,32 +325,9 @@ export default {
     },
     //ลบเสียง
     async deleteSound() {
-      let key = this.$route.params.key;
-
-      let api = "https://api.winner-english.com/data/api/gettime.php";
-      let response = await axios.get(api);
-      let date = response.data[0].date;
-      let microtime = response.data[0].microtime;
-      db.collection("Vocabulary")
-        .doc("draft")
-        .set({
-          saveDraft: microtime
-        });
       this.general.url = "";
-      db.collection("Vocabulary")
-        .doc("draft")
-        .collection("data")
-        .doc(key)
-        .update({
-          url: ""
-        })
-        .then(() => {
-          st.child("audios/vocab/" + key + ".mp3")
-            .delete()
-            .then(() => {
-              this.isFile = false;
-            });
-        });
+
+      this.isDeleteSound = true;
     }
   },
   mounted() {

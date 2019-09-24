@@ -27,11 +27,17 @@
           class="bg-grey-2 text-grey-7 shadow-2 relative-position"
           align="left"
           active-color="secondary"
-          style="border-bottom:1px solid #757575;height:60px"
         >
           <q-tab name="draft" label="แบบร่าง" icon="fas fa-pen"></q-tab>
           <q-tab name="server" label="เซิร์ฟเวอร์" icon="fas fa-cloud"></q-tab>
-          <q-input filled class="desktop-only absolute-top-right" label="ค้นหา">
+          <q-space />
+          <q-input
+            v-model="search"
+            filled
+            class="desktop-only"
+            style="height:40px"
+            placeholder="ค้นหา..."
+          >
             <template v-slot:append>
               <q-icon name="search" />
             </template>
@@ -74,7 +80,7 @@
         </div>
       </div>
       <div class="q-pb-lg flex flex-center">
-        <!-- <q-pagination v-model="page" :max="6" color="blue-grey-10" :direction-links="true" /> -->
+        <q-pagination v-model="page" :max="6" color="blue-grey-10" :direction-links="true" />
       </div>
       <div class="row">
         <div
@@ -110,7 +116,7 @@
       </div>
 
       <div class="q-pt-lg q-pb-md flex flex-center">
-        <!-- <q-pagination v-model="page" :max="6" color="blue-grey-10" :direction-links="true" /> -->
+        <q-pagination v-model="page" :max="6" color="blue-grey-10" :direction-links="true" />
       </div>
     </div>
   </q-page>
@@ -129,10 +135,12 @@ export default {
         positions: ""
       },
       page: 1,
-      positionOptions: []
+      positionOptions: [],
+      search: ""
     };
   },
   methods: {
+    // โหลดข้อมูล
     loadData() {
       db.collection("Vocabulary")
         .doc("draft")
@@ -185,18 +193,22 @@ export default {
           this.loadData();
         });
     },
+    // เล่นเสียง
     playsound(url) {
       let audio = new Audio(url);
       setTimeout(() => {
         audio.play();
       }, 1000);
     },
+    // ปุ่มแก้ไข
     editBtn(key) {
       this.$router.push("/vocabulary/edit/" + key);
     },
+    // ปุ่มเพิ่ม
     addBtn() {
       this.$router.push("/vocabulary/add");
     },
+    //  ซิงเซิฟเวอร์
     async syncBtn() {
       //update server time
       let api = "https://api.winner-english.com/data/api/gettime.php";
