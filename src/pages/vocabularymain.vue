@@ -9,11 +9,12 @@
         <q-space />
         <div align="right" class="q-pr-sm">
           <q-btn
+            flat
             @click="syncBtn()"
             size="md"
             color="secondary"
             round
-            icon="fas fa-sync-alt"
+            icon="fas fa-cloud-upload-alt"
             class="text-body1 text-white"
           />
         </div>
@@ -24,7 +25,7 @@
         <q-tabs
           v-model="tab"
           inline-label
-          class="bg-grey-2 text-grey-7 shadow-2 relative-position"
+          class="shadow-2 text-blue-grey-10"
           align="left"
           active-color="secondary"
         >

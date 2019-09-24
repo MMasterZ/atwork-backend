@@ -11,8 +11,7 @@
           <q-btn
             flat
             round
-            push
-            icon="fas fa-sync"
+            icon="fas fa-cloud-upload-alt"
             :disable="tab!='draft'?true:false || !syncData"
             :class="{ 'bg-grey-7' : tab!='draft' , 'bg-secondary' : tab=='draft'}"
             class="q-mr-sm text-body1 text-grey-2"
@@ -28,7 +27,7 @@
           <q-tabs
             v-model="tab"
             inline-label
-            class="text-grey-7 shadow-2"
+            class="shadow-2 text-blue-grey-10"
             align="left"
             active-color="secondary"
           >
@@ -255,7 +254,7 @@ export default {
                   this.expressionList.sort((a, b) => {
                     return a.orderid - b.orderid;
                   });
-                  this.$q.loading.hide();
+                  this.loadingHide();
                 } catch (err) {
                   let dataKey = {
                     url: "",
@@ -269,7 +268,7 @@ export default {
                   this.expressionList.sort((a, b) => {
                     return a.orderid - b.orderid;
                   });
-                  this.$q.loading.hide();
+                  this.loadingHide();
                   //*************Disable warning file not found **********/
                   console.clear();
                   //*************Disable warning file not found **********/
@@ -304,13 +303,11 @@ export default {
               label: element.data().orderid + " - " + element.data().name
             };
             this.generalPosition.push(showPosition);
-
             this.generalPosition.sort((a, b) => {
               return a.orderid - b.orderid;
             });
           });
           this.obj.positions = this.$q.localStorage.getItem("currentposition");
-
           this.loadData();
         });
     },
