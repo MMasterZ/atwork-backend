@@ -141,6 +141,7 @@ export default {
   },
   methods: {
     // โหลดข้อมูล
+
     loadData() {
       db.collection("Vocabulary")
         .doc("draft")
@@ -164,12 +165,14 @@ export default {
             this.vocabularyList.sort((a, b) => {
               return a.vocab > b.vocab ? 1 : -1;
             });
+            this.loadingHide();
           } else {
           }
         });
     },
     //************************ โหลดตำแหน่ง
     loadPosition() {
+      this.loadingShow();
       db.collection("Position")
         .get()
         .then(doc => {
@@ -194,6 +197,7 @@ export default {
         });
     },
     // เล่นเสียง
+
     playsound(url) {
       let audio = new Audio(url);
       setTimeout(() => {
