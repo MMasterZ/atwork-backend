@@ -16,6 +16,7 @@
             round
             icon="fas fa-cloud-upload-alt"
             class="text-body1 text-white"
+            :disable="tab == 'server' || !isSyncMode"
           />
         </div>
       </q-toolbar>
@@ -25,11 +26,7 @@
         <q-tabs
           v-model="tab"
           inline-label
-<<<<<<< HEAD
           class="shadow-2 text-blue-grey-10"
-=======
-          class="bg-grey-2 text-blue-grey-10 shadow-2 relative-position"
->>>>>>> master
           align="left"
           active-color="secondary"
         >
@@ -141,12 +138,12 @@ export default {
       },
       page: 1,
       positionOptions: [],
-      search: ""
+      search: "",
+      isSyncMode: false
     };
   },
   methods: {
     // โหลดข้อมูล
-
     loadData() {
       db.collection("Vocabulary")
         .doc("draft")
@@ -220,6 +217,7 @@ export default {
     //  ซิงเซิฟเวอร์
     async syncBtn() {
       //update server time
+      this.loadingShow();
       let api = "https://api.winner-english.com/data/api/gettime.php";
       let response = await axios.get(api);
       let date = response.data[0].date;
@@ -253,14 +251,40 @@ export default {
                   .doc("server")
                   .collection("data")
                   .doc(data.id)
-                  .set(data.data());
+                  .set(data.data())
+                  .then(() => {
+                    this.loadingHide();
+                  });
               });
+            });
+        });
+    },
+    // เช็ค การซิงข้อมูลของบทสนทนา
+    checkSyncData() {
+      let saveDraft = "";
+      let saveServer = "";
+      db.collection("Dialog")
+        .doc("draft")
+        .get()
+        .then(doc => {
+          saveDraft = doc.data().saveDraft;
+          db.collection("Dialog")
+            .doc("server")
+            .get()
+            .then(doc => {
+              saveServer = doc.data().saveServer;
+              // เมื่อค่า ดราฟ มีค่าเวลาเซิฟมากกว่า จะสามารถซิงค์ข้อมูลได้
+              if (saveDraft <= saveServer) {
+                // เมื่อค่าเวลาน้อยกว่าหรือเท่ากับจะไม่สามารถซิงค์ข้อมูลได้
+                // this.isSyncMode = false;
+              }
             });
         });
     }
   },
   mounted() {
     this.loadPosition();
+    this.checkSyncData();
   }
 };
 </script>

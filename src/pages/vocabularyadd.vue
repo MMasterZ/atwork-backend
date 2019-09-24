@@ -269,10 +269,9 @@ export default {
     },
     //ลบคำศัพท์
     async deleteBtn() {
-      this.loadingShow();
-
       let microtime = await this.loadTime();
       let key = this.$route.params.key;
+
       this.$q
         .dialog({
           class: "no-margin ",
@@ -286,6 +285,7 @@ export default {
           persistent: true
         })
         .onOk(() => {
+          this.loadingShow();
           this.db.vocab.set({
             saveDraft: microtime
           });
