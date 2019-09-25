@@ -41,6 +41,7 @@
                     <div class="q-pt-xs q-pl-sm text-body1 text-grey-7 q-pr-md">เสียง</div>
                   </td>
                   <td>
+                    <!-- ช่องเพิ่มเสียง หน้าเพิ่ม  -->
                     <q-input
                       borderless
                       :type=" 'file'"
@@ -53,6 +54,7 @@
                 </tr>
               </table>
             </div>
+            <!-- ช่องเพิ่มเสียง แก้ไข -->
             <div v-if="isFile">
               <div class="row justify-between">
                 <div class="q-my-xs q-pt-sm text-secondary">
@@ -155,14 +157,23 @@ export default {
       url: "",
       file: "",
       isFile: false,
-      editMode: false
+      editMode: false,
+      db: {
+        situation: db.collection("Situation"),
+        position: db.collection("Position"),
+        expression: db.collection("Expression").doc("draft"),
+        expressionData: db
+          .collection("Expression")
+          .doc("draft")
+          .collection("data")
+      }
     };
   },
   methods: {
     // โหลดสถานการณ์
     loadSituation() {
       this.loadingShow();
-      db.collection("Situation")
+      this.db.situation
         .where("positionKey", "==", this.obj.positionKey)
         .get()
         .then(doc => {
@@ -178,34 +189,33 @@ export default {
               if (this.editMode) {
                 this.loadedit();
               }
+              this.loadingHide();
             });
           } else {
             this.obj.situationKey = "-";
+            this.loadingHide();
           }
-          this.loadingHide();
         });
     },
     // โหลดตำแหน่ง
     loadPosition() {
       this.loadingShow();
-      db.collection("Position")
-        .get()
-        .then(doc => {
-          this.positionArry = [];
-          if (doc.size > 0) {
-            doc.forEach(element => {
-              let dataKey = {
-                label: element.data().name,
-                value: element.id
-              };
-              this.positionArry.push(dataKey);
-              this.obj.positionKey = this.$q.localStorage.getItem(
-                "currentposition"
-              );
-            });
-          }
-          this.loadSituation();
-        });
+      this.db.position.get().then(doc => {
+        this.positionArry = [];
+        if (doc.size > 0) {
+          doc.forEach(element => {
+            let dataKey = {
+              label: element.data().name,
+              value: element.id
+            };
+            this.positionArry.push(dataKey);
+            this.obj.positionKey = this.$q.localStorage.getItem(
+              "currentposition"
+            );
+          });
+        }
+        this.loadSituation();
+      });
     },
     // โหลดเสียง หน้าแก้ไข
     async loadedit() {
@@ -218,11 +228,9 @@ export default {
       } catch (err) {
         this.isFile = false;
       }
-      this.loadingShow();
+
       //check audio exists
-      db.collection("Expression")
-        .doc("draft")
-        .collection("data")
+      this.db.expressionData
         .doc(this.$route.params.key)
         .get()
         .then(doc => {
@@ -233,10 +241,8 @@ export default {
     },
     // ลบข้อมูลทั้งหมด
     async deleteBtnTop() {
-      let api = "https://api.winner-english.com/data/api/gettime.php";
-      let response = await axios.get(api);
-      let date = response.data[0].date;
-      let microtime = response.data[0].microtime;
+      // แก้ไข
+      let microtime = await this.loadTime();
       this.$q
         .dialog({
           title: "คำเตือน",
@@ -245,17 +251,11 @@ export default {
           persistent: true
         })
         .onOk(() => {
-          db.collection("Expression")
-            .doc("draft")
-            .set({ saveDraft: microtime });
+          this.db.expression.set({ saveDraft: microtime });
           st.child("audios/" + this.$route.params.key + ".mp3")
             .delete()
             .then(url => {});
-          db.collection("Expression")
-            .doc("draft")
-            .collection("data")
-            .doc(this.$route.params.key)
-            .delete();
+          this.db.expressionData.doc(this.$route.params.key).delete();
           this.$router.push("/expression");
         });
     },
@@ -304,60 +304,41 @@ export default {
         this.notifyRed("กรุณากรอกข้อมูลให้ครบ");
         return;
       }
-      let api = "https://api.winner-english.com/data/api/gettime.php";
-      let response = await axios.get(api);
-      let date = response.data[0].date;
-      let microtime = response.data[0].microtime;
+      // ไมโครทาม เซฟเวลาเข้าใน firebase
+      let microtime = await this.loadTime();
       // บันทึกหน้าเพิ่ม
       if (this.$route.name == "expressionadd") {
-        db.collection("Expression")
-          .doc("draft")
-          .collection("data")
-          .add(this.obj)
-          .then(doc => {
-            db.collection("Expression")
-              .doc("draft")
-              .set({ saveDraft: microtime });
-            this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-            if (_this.file != "") {
-              st.child("audios/" + doc.id + ".mp3")
-                .put(this.file[0])
-                .then(() => {
-                  this.$q.loading.hide();
-                  st.child("audios/" + doc.id + ".mp3")
-                    .getDownloadURL()
-                    .then(res => {
-                      db.collection("Expression")
-                        .doc("draft")
-                        .collection("data")
-                        .doc(doc.id)
-                        .update({
-                          url: res
-                        });
-                      this.$router.push("/expression");
+        this.db.expressionData.add(this.obj).then(doc => {
+          this.db.expression.set({ saveDraft: microtime });
+          this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+          if (_this.file != "") {
+            st.child("audios/" + doc.id + ".mp3")
+              .put(this.file[0])
+              .then(() => {
+                this.$q.loading.hide();
+                st.child("audios/" + doc.id + ".mp3")
+                  .getDownloadURL()
+                  .then(res => {
+                    this.db.expressionData.doc(doc.id).update({
+                      url: res
                     });
-                });
-            } else {
-              _this.$q.loading.hide();
-              db.collection("Expression")
-                .doc("draft")
-                .collection("data")
-                .doc(doc.id)
-                .update({
-                  url: ""
-                });
-              _this.$router.push("/expression");
-            }
-          });
+                    this.$router.push("/expression");
+                  });
+              });
+          } else {
+            this.loadingHide();
+            _this.$q.loading.hide();
+            this.db.expressionData.doc(doc.id).update({
+              url: ""
+            });
+            _this.$router.push("/expression");
+          }
+        });
       }
       // บันทึกหน้าแก้ไข
       else {
-        db.collection("Expression")
-          .doc("draft")
-          .set({ saveDraft: microtime });
-        db.collection("Expression")
-          .doc("draft")
-          .collection("data")
+        this.db.expression.set({ saveDraft: microtime });
+        this.db.expressionData
           .doc(this.$route.params.key)
           .set(this.obj)
           .then(() => {
@@ -370,9 +351,7 @@ export default {
                   st.child("audios/" + this.$route.params.key + ".mp3")
                     .getDownloadURL()
                     .then(res => {
-                      db.collection("Expression")
-                        .doc("draft")
-                        .collection("data")
+                      this.db.expressionData
                         .doc(this.$route.params.key)
                         .update({
                           url: res
@@ -385,13 +364,9 @@ export default {
                 });
             } else {
               this.loadingHide();
-              db.collection("Expression")
-                .doc("draft")
-                .collection("data")
-                .doc(this.$route.params.key)
-                .update({
-                  url: ""
-                });
+              this.db.expressionData.doc(this.$route.params.key).update({
+                url: ""
+              });
               this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
               _this.$router.push("/expression");
             }
