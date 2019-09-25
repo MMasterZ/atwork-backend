@@ -138,7 +138,7 @@
             </div>
           </q-tab-panel>
 
-          <!--******************** ผู้สนทนา -->
+          <!-- ผู้สนทนา -->
           <q-tab-panel name="speaker">
             <div class="row">
               <div class="q-pr-md-sm col-md-6 col-xs-12">
@@ -146,8 +146,7 @@
                   outlined
                   v-model="speaker.speakerEng"
                   label="ชื่อผู้สนทนาภาษาอังกฤษ"
-                  :rules="[value => !!value ]"
-                  ref="speakerEng"
+                  :error="isErrorHasSpeakerEng"
                 />
               </div>
               <div class="q-pl-md-sm col-md-6 col-xs-12">
@@ -155,8 +154,7 @@
                   outlined
                   v-model="speaker.speakerThai"
                   label="ชื่อผู้สนทนาภาษาไทย"
-                  :rules="[value => !!value ]"
-                  ref="speakerThai"
+                  :error="isErrorHasSpeakerThai"
                 />
               </div>
               <div class="q-pt-lg q-pb-md col-12" align="center">
@@ -183,19 +181,26 @@
               <div class="col-12" v-show="!isSpeakerEditMode">
                 <q-table :data="speakerData" :columns="columns">
                   <template v-slot:body="props">
-                    <q-tr :props="props">
+                    <q-tr :props="props" style="height:70px;">
                       <q-td key="nameEng" :props="props">{{ props.row.speakerEng }}</q-td>
                       <q-td key="nameThai" :props="props">{{ props.row.speakerThai }}</q-td>
                       <q-td key="delete" :props="props">
                         <q-btn
                           round
-                          flat
+                          color="secondary"
+                          size="md"
                           icon="fas fa-trash-alt"
                           @click="deleteSpeaker(props.row.key)"
                         />
                       </q-td>
                       <q-td key="edit" :props="props">
-                        <q-btn round flat icon="fas fa-edit" @click="editSpeaker(props.row.key)" />
+                        <q-btn
+                          round
+                          color="secondary"
+                          size="md"
+                          icon="fas fa-edit"
+                          @click="editSpeaker(props.row.key)"
+                        />
                       </q-td>
                     </q-tr>
                   </template>
@@ -403,9 +408,17 @@ import { st } from "../router/index.js";
 export default {
   data() {
     return {
+      has: false,
       tabShow: "situation",
       dockey: "",
       dataDb: "",
+      db: {
+        dialogData: db
+          .collection("Dialog")
+          .doc("draft")
+          .collection("data"),
+        dialog: db.collection("Dialog").doc("draft")
+      },
       //tab control
 
       // Data ในสถานการณ์
@@ -423,6 +436,8 @@ export default {
       isUploadComplete: false,
 
       //ผู้สนทนา
+      isErrorHasSpeakerEng: false,
+      isErrorHasSpeakerThai: false,
       isSpeakerMode: true,
       isSpeakerEditMode: false,
       speaker: {
@@ -518,10 +533,7 @@ export default {
     //************* */ บันทึกสถานการณ์
     async saveSituBtn() {
       // ฟังกืชันเอาเวลาในเครื่อง เอาไว้ใส่ในเวลบาดราฟแล้วก็ปุ่มซิงค์ข้อมูล
-      let api = "https://api.winner-english.com/data/api/gettime.php";
-      let response = await axios.get(api);
-      let date = response.data[0].date;
-      let microtime = response.data[0].microtime;
+      let microtime = await this.loadTime();
 
       // เช็คการกรอกข้อมูลให้ครบถ้วน
       this.$refs.situationEng.validate(); // ช่องภาษาอังกฤษ
@@ -531,7 +543,7 @@ export default {
         this.$refs.situationEng.hasError ||
         this.$refs.situationThai.hasError
       ) {
-        this.notifyRed("กรุณากรอกข้อมูลให้ครบถ้วน");
+        this.notifyRed("กรุณากรอกชื่อสถานการณ์");
         return;
       }
 
@@ -543,57 +555,59 @@ export default {
       // add ข้อมูลเข้าฐานข้อมูล
       this.isVdoMode = true;
       this.isSpeakerMode = true;
+      this.loadingShow();
       if (this.dockey.length) {
-        db.collection("Dialog")
-          .doc("draft")
-          .collection("data")
+        // หน้าแก้ไข
+        this.db.dialogData
           .doc(this.dockey)
           .set(this.situation)
           .then(doc => {
-            db.collection("Dialog")
-              .doc("draft")
+            this.db.dialog
               .set({
                 saveDraft: microtime
+              })
+              .then(() => {
+                this.loadingHide();
+                this.tabShow = "vdo";
               });
           });
       } else {
-        db.collection("Dialog")
-          .doc("draft")
-          .collection("data")
-          .add(this.situation)
-          .then(doc => {
-            this.dockey = doc.id;
-            db.collection("Dialog")
-              .doc("draft")
-              .set({
-                saveDraft: microtime
-              });
-            this.$router.push("/dialog/edit/" + this.dockey + "/1");
+        // หน้าเพิ่มข้อมูล
+        this.db.dialogData.add(this.situation).then(doc => {
+          this.dockey = doc.id;
+          this.db.dialog.set({
+            saveDraft: microtime
           });
+          this.loadingHide();
+          this.tabShow = "vdo";
+          this.$router.push("/dialog/edit/" + this.dockey + "/1");
+        });
       }
     },
 
     /*************บันทึกไฟล์ VDO***********/
-    saveVdo(data) {
+    async saveVdo(data) {
+      let microtime = await this.loadTime();
       let fileVdo = data[0];
+      this.loadingShow();
       st.child("videos/dialog/" + this.dockey + ".mp4")
         .put(fileVdo)
         .then(res => {
           res.ref.getDownloadURL().then(url => {
             //ทำการ update url ใน database
-            db.collection("Dialog")
-              .doc("draft")
-              .collection("data")
-              .doc(this.dockey)
-              .update({ url: url });
+            this.db.dialogData.doc(this.dockey).update({ url: url });
+            this.db.dialog.set({ saveDraft: microtime });
             this.situation.url = url;
             this.isUploadComplete = true;
+            this.tabShow = "speaker";
+            this.loadingHide();
           });
         });
     },
 
     /***************ลบไฟล์ VDO */
-    delVdoBtn() {
+    async delVdoBtn() {
+      let microtime = await this.loadTime();
       this.$q
         .dialog({
           title: "คำเตือน",
@@ -602,6 +616,7 @@ export default {
           persistent: true
         })
         .onOk(() => {
+          this.loadingShow();
           this.dataDb
             .update({
               url: ""
@@ -610,6 +625,8 @@ export default {
               st.child("videos/dialog/" + this.dockey + ".mp4")
                 .delete()
                 .then(res => {
+                  this.db.dialog.set({ saveDraft: microtime });
+                  this.loadingHide();
                   // window.location.reload();
                   // this.$router.push("/dialog/edit/" + this.dockey + "/2");
                 });
@@ -619,46 +636,62 @@ export default {
     },
 
     /*************บันทึกผู้สนทนา***********/
-    saveSpeakBtn() {
-      this.$refs.speakerEng.validate(); // ช่องชื่อผู้สนทนาภาษาอังกฤษ
-      this.$refs.speakerThai.validate(); // ช่องชื่อผู้สนทนาภาษาไทย
-
-      if (this.$refs.speakerEng.hasError || this.$refs.speakerThai.hasError) {
+    async saveSpeakBtn() {
+      let microtime = await this.loadTime();
+      // this.$refs.speakerEng.validate(); // ช่องชื่อผู้สนทนาภาษาอังกฤษ
+      // this.$refs.speakerThai.validate(); // ช่องชื่อผู้สนทนาภาษาไทย
+      if (this.speaker.speakerEng == "") {
+        this.isErrorHasSpeakerEng = true;
         this.notifyRed("กรุณากรอกข้อมูลให้ครบถ้วน");
         return;
+      } else {
+        this.isErrorHasSpeakerEng = false;
       }
+      if (this.speaker.speakerThai == "") {
+        this.isErrorHasSpeakerThai = true;
+        this.notifyRed("กรุณากรอกข้อมูลให้ครบถ้วน");
+        return;
+      } else {
+        this.isErrorHasSpeakerThai = false;
+      }
+
+      // if (this.$refs.speakerEng.hasError || this.$refs.speakerThai.hasError) {
+      //   this.has = true;
+      //   this.notifyRed("กรุณากรอกข้อมูลให้ครบถ้วน");
+      //   return;
+      // }
 
       this.$q.loading.show();
       if (this.isSpeakerEditMode) {
-        console.log("test");
-        db.collection("Dialog")
-          .doc("draft")
-          .collection("data")
+        this.db.dialogData
           .doc(this.dockey)
           .collection("speaker")
           .doc(this.speakerEditKey)
           .set(this.speaker)
           .then(() => {
+            this.db.dialog.set({ saveDraft: microtime });
             this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
             this.speaker.speakerEng = "";
             this.speaker.speakerThai = "";
             this.loadSpeaker();
             this.isSpeakerEditMode = false;
+            this.isErrorHasSpeakerEng = false;
+            this.isErrorHasSpeakerThai = false;
             this.$q.loading.hide();
           });
       } else {
-        db.collection("Dialog")
-          .doc("draft")
-          .collection("data")
+        this.db.dialogData
           .doc(this.dockey)
           .collection("speaker")
           .add(this.speaker)
           .then(() => {
+            this.db.dialog.set({ saveDraft: microtime });
             this.isSentenMode = true;
             this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
             this.speaker.speakerEng = "";
             this.speaker.speakerThai = "";
-
+            this.isErrorHasSpeakerEng = false;
+            this.isErrorHasSpeakerThai = false;
             this.loadSpeaker();
             this.$q.loading.hide();
           });
@@ -669,9 +702,7 @@ export default {
     loadSpeaker() {
       this.speakerData = [];
       this.optionsSpeaker = [];
-      db.collection("Dialog")
-        .doc("draft")
-        .collection("data")
+      this.db.dialogData
         .doc(this.dockey)
         .collection("speaker")
         .get()
@@ -704,8 +735,9 @@ export default {
         });
     },
 
-    //****************ลบผู้สนทนา */
-    deleteSpeaker(key) {
+    //**************** ลบผู้สนทนา */
+    async deleteSpeaker(key) {
+      let microtime = await this.loadTime();
       this.$q
         .dialog({
           title: "คำเตือน",
@@ -714,14 +746,13 @@ export default {
           persistent: true
         })
         .onOk(() => {
-          db.collection("Dialog")
-            .doc("draft")
-            .collection("data")
+          this.db.dialogData
             .doc(this.dockey)
             .collection("speaker")
             .doc(key)
             .delete()
             .then(() => {
+              this.db.dialog.set({ saveDraft: microtime });
               this.notifyRed("ลบข้อมูลเรียบร้อย");
               this.loadSpeaker();
             });
@@ -768,9 +799,7 @@ export default {
       }
 
       this.$q.loading.show();
-      db.collection("Dialog")
-        .doc("draft")
-        .collection("data")
+      this.db.dialogData
         .doc(this.dockey)
         .collection("sentence")
         .add(this.dialog)
@@ -795,9 +824,7 @@ export default {
                   });
               });
           } else {
-            db.collection("Dialog")
-              .doc("draft")
-              .collection("data")
+            this.db.dialogData
               .doc(this.dockey)
               .collection("sentence")
 
@@ -826,22 +853,16 @@ export default {
     //******load ข้อมูลบทสนทนา */
     loadDialog() {
       this.sentenceData = [];
-
-      db.collection("Dialog")
-        .doc("draft")
-        .collection("data")
+      this.db.dialogData
         .doc(this.dockey)
         .collection("sentence")
-
         .get()
         .then(doc => {
           doc.forEach(data => {
             let datakey = {
               sentencekey: data.id
             };
-            db.collection("Dialog")
-              .doc("draft")
-              .collection("data")
+            this.db.dialogData
               .doc(this.dockey)
               .collection("speaker")
               .doc(data.data().speakerKey)
@@ -872,33 +893,7 @@ export default {
 
     //**********ยกเลิกแก้ไข Dialog **************/
 
-    //**************ปุ่มยกเลิกทั่วไป ***********/
-    backBtn() {
-      this.$router.push("/dialog");
-    },
-
-    //*********** Select All ในหน้าสถานการณ์ */
-    selecisCheckAll() {
-      if (this.isCheckAll) {
-        for (let i = 0; i < this.positionData.length; i++) {
-          const element = this.positionData[i];
-          this.situation.positionSelec.push(element.key);
-        }
-      } else {
-        this.situation.positionSelec = [];
-      }
-    },
-
-    //***********select All ในหน้าสถานการณ์ */
-    checkBoxChanged() {
-      if (this.situation.positionSelec.length == this.positionData.length) {
-        this.isCheckAll = true;
-      } else {
-        this.isCheckAll = false;
-      }
-    },
-
-    //************โหลดข้อมูลตำแหน่งในหน้าสถานการณ์
+    //************ โหลดข้อมูลตำแหน่งในหน้าสถานการณ์
     loadPosition() {
       this.$q.loading.show();
       db.collection("Position")
@@ -933,6 +928,32 @@ export default {
         this.situation = data.data();
         this.checkBoxChanged();
       });
+    },
+
+    //**************ปุ่มยกเลิกทั่วไป ***********/
+    backBtn() {
+      this.$router.push("/dialog");
+    },
+
+    //*********** Select All ในหน้าสถานการณ์ */
+    selecisCheckAll() {
+      if (this.isCheckAll) {
+        for (let i = 0; i < this.positionData.length; i++) {
+          const element = this.positionData[i];
+          this.situation.positionSelec.push(element.key);
+        }
+      } else {
+        this.situation.positionSelec = [];
+      }
+    },
+
+    //***********select All ในหน้าสถานการณ์ */
+    checkBoxChanged() {
+      if (this.situation.positionSelec.length == this.positionData.length) {
+        this.isCheckAll = true;
+      } else {
+        this.isCheckAll = false;
+      }
     }
   },
 
@@ -953,11 +974,7 @@ export default {
       } else {
         this.tabShow = "dialog";
       }
-      this.dataDb = db
-        .collection("Dialog")
-        .doc("draft")
-        .collection("data")
-        .doc(this.dockey);
+      this.dataDb = this.db.dialogData.doc(this.dockey);
       // this.loadDataSituation();
 
       this.loadSpeaker();
