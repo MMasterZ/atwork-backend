@@ -158,18 +158,13 @@
                 />
               </div>
               <div class="q-pt-lg q-pb-md col-12" align="center">
-                <q-btn
-                  style="width:120px;"
-                  class="q-mr-sm"
-                  @click="backBtn()"
-                  v-show="!isSpeakerEditMode"
-                >ยกเลิก</q-btn>
-                <q-btn
+                <q-btn style="width:120px;" class="q-mr-sm" @click="backBtn()">ยกเลิก</q-btn>
+                <!-- <q-btn
                   style="width:120px;"
                   class="q-mr-sm"
                   @click="backBtn2()"
                   v-show="isSpeakerEditMode"
-                >ยกเลิก</q-btn>
+                >ยกเลิก</q-btn>-->
                 <q-btn
                   style="width:120px;"
                   class="bg-secondary text-white q-ml-sm"
@@ -178,7 +173,7 @@
               </div>
 
               <!-- start table -->
-              <div class="col-12" v-show="!isSpeakerEditMode">
+              <div class="col-12">
                 <q-table :data="speakerData" :columns="columns">
                   <template v-slot:body="props">
                     <q-tr :props="props" style="height:70px;">
@@ -207,6 +202,69 @@
                 </q-table>
               </div>
               <!-- end table -->
+
+              <!-- หน้าแก้ไข -->
+              <div>
+                <q-dialog v-model="isSpeakerEditMode" persistent>
+                  <q-card style="min-width: 400px">
+                    <q-card-section>
+                      <div class="text-h6">แก้ไขผู้สนทนา</div>
+                    </q-card-section>
+
+                    <q-card-section>
+                      <q-input
+                        outlined
+                        label="ชื่อผู้สนทนาภาษาอังกฤษ"
+                        :error="isErrorHasSpeakerEng"
+                        v-model="speaker.speakerEng"
+                        autofocus
+                      />
+                      <q-input
+                        outlined
+                        label="ชื่อผู้สนทนาภาษาไทย"
+                        :error="isErrorHasSpeakerThai"
+                        v-model="speaker.speakerThai"
+                      />
+                    </q-card-section>
+
+                    <q-card-actions align="right" class="text-primary">
+                      <q-btn flat label="ยกเลิก" v-close-popup />
+                      <q-btn flat label="บันทึก" v-close-popup @click="saveSpeakBtn()" />
+                    </q-card-actions>
+                  </q-card>
+                </q-dialog>
+              </div>
+
+              <!-- <div class="row" v-show="isSpeakerEditMode">
+                <div class="q-pr-md-sm col-md-6 col-xs-12">
+                  <q-input
+                    outlined
+                    v-model="speaker.speakerEng"
+                    label="ชื่อผู้สนทนาภาษาอังกฤษ"
+                    :error="isErrorHasSpeakerEng"
+                  />
+                </div>
+                <div class="q-pl-md-sm col-md-6 col-xs-12">
+                  <q-input
+                    outlined
+                    v-model="speaker.speakerThai"
+                    label="ชื่อผู้สนทนาภาษาไทย"
+                    :error="isErrorHasSpeakerThai"
+                  />
+                </div>
+
+                <q-btn
+                  style="width:120px;"
+                  class="q-mr-sm"
+                  @click="backBtn2()"
+                  v-show="isSpeakerEditMode"
+                >ยกเลิก</q-btn>
+                <q-btn
+                  style="width:120px;"
+                  class="bg-secondary text-white q-ml-sm"
+                  @click="saveSpeakBtn()"
+                >บันทึก</q-btn>
+              </div>-->
             </div>
           </q-tab-panel>
 
@@ -636,8 +694,7 @@ export default {
     },
 
     /*************บันทึกผู้สนทนา***********/
-    async saveSpeakBtn() {
-      let microtime = await this.loadTime();
+    saveSpeakBtn() {
       // this.$refs.speakerEng.validate(); // ช่องชื่อผู้สนทนาภาษาอังกฤษ
       // this.$refs.speakerThai.validate(); // ช่องชื่อผู้สนทนาภาษาไทย
       if (this.speaker.speakerEng == "") {
@@ -662,13 +719,14 @@ export default {
       // }
 
       this.$q.loading.show();
-      if (this.isSpeakerEditMode) {
+      if (this.isSpeakerEditMode == true) {
         this.db.dialogData
           .doc(this.dockey)
           .collection("speaker")
           .doc(this.speakerEditKey)
           .set(this.speaker)
-          .then(() => {
+          .then(async () => {
+            let microtime = await this.loadTime();
             this.db.dialog.set({ saveDraft: microtime });
             this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
             this.speaker.speakerEng = "";
@@ -677,6 +735,7 @@ export default {
             this.isSpeakerEditMode = false;
             this.isErrorHasSpeakerEng = false;
             this.isErrorHasSpeakerThai = false;
+
             this.$q.loading.hide();
           });
       } else {
@@ -684,7 +743,8 @@ export default {
           .doc(this.dockey)
           .collection("speaker")
           .add(this.speaker)
-          .then(() => {
+          .then(async () => {
+            let microtime = await this.loadTime();
             this.db.dialog.set({ saveDraft: microtime });
             this.isSentenMode = true;
             this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
@@ -697,6 +757,7 @@ export default {
           });
       }
     },
+    // editSpeaker() {},
 
     //**************โหลดข้อมูลผู้สนทนา
     loadSpeaker() {

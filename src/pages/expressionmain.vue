@@ -329,11 +329,36 @@ export default {
     // แก้ไข
     editBtn(key) {
       this.$router.push("/expression/edit/" + key);
+    },
+
+    runXXX() {
+      db.collection("Expression")
+        .doc("server")
+        .collection("data")
+        .where("positionKey", "==", "CQZogN7SRYsbH35utp4Q")
+        // .where("orderid", ">=", 100)
+        // .where("orderid", "<=", 109)
+        .get()
+        .then(doc => {
+          doc.forEach(element => {
+            if (
+              element.data().orderid >= 100 &&
+              element.data().orderid <= 109
+            ) {
+              db.collection("Expression")
+                .doc("server")
+                .collection("data")
+                .doc(element.id)
+                .update({ situationKey: "qTmrBZgeeexvBruTOfRC" });
+            }
+          });
+        });
     }
   },
   mounted() {
     this.loadPosition();
     this.checkSync();
+    // this.runXXX();
   }
 };
 </script>
