@@ -23,7 +23,7 @@
             <q-tab name="situation" label="สถานการณ์" />
             <q-tab name="vdo" label="วีดีโอ" :disable="!isVdoMode" />
             <q-tab name="speaker" :disable="!isSpeakerMode" label="ผู้สนทนา" />
-            <q-tab name="dialog" :disable="!isSentenMode" label="บทสนทนา" />
+            <q-tab name="dialog" :disable="!isSentenceMode" label="บทสนทนา" />
           </q-tabs>
         </div>
 
@@ -88,7 +88,7 @@
             </div>
           </q-tab-panel>
 
-          <!-- vdo -->
+          <!-- วีดีโอ -->
           <q-tab-panel name="vdo">
             <div class="q-pb-md col-12" align="center">
               <div
@@ -159,12 +159,6 @@
               </div>
               <div class="q-pt-lg q-pb-md col-12" align="center">
                 <q-btn style="width:120px;" class="q-mr-sm" @click="backBtn()">ยกเลิก</q-btn>
-                <!-- <q-btn
-                  style="width:120px;"
-                  class="q-mr-sm"
-                  @click="backBtn2()"
-                  v-show="isSpeakerEditMode"
-                >ยกเลิก</q-btn>-->
                 <q-btn
                   style="width:120px;"
                   class="bg-secondary text-white q-ml-sm"
@@ -234,37 +228,6 @@
                   </q-card>
                 </q-dialog>
               </div>
-
-              <!-- <div class="row" v-show="isSpeakerEditMode">
-                <div class="q-pr-md-sm col-md-6 col-xs-12">
-                  <q-input
-                    outlined
-                    v-model="speaker.speakerEng"
-                    label="ชื่อผู้สนทนาภาษาอังกฤษ"
-                    :error="isErrorHasSpeakerEng"
-                  />
-                </div>
-                <div class="q-pl-md-sm col-md-6 col-xs-12">
-                  <q-input
-                    outlined
-                    v-model="speaker.speakerThai"
-                    label="ชื่อผู้สนทนาภาษาไทย"
-                    :error="isErrorHasSpeakerThai"
-                  />
-                </div>
-
-                <q-btn
-                  style="width:120px;"
-                  class="q-mr-sm"
-                  @click="backBtn2()"
-                  v-show="isSpeakerEditMode"
-                >ยกเลิก</q-btn>
-                <q-btn
-                  style="width:120px;"
-                  class="bg-secondary text-white q-ml-sm"
-                  @click="saveSpeakBtn()"
-                >บันทึก</q-btn>
-              </div>-->
             </div>
           </q-tab-panel>
 
@@ -277,8 +240,7 @@
                   v-model="dialog.orderId"
                   label="ลำดับประโยค"
                   type="number"
-                  :rules="[value => !!value ]"
-                  ref="dialogOrder"
+                  :error="isErrorHasOrder"
                 />
               </div>
               <div class="q-pr-md-sm col-md-4 col-xs-12">
@@ -345,8 +307,7 @@
                   outlined
                   v-model="dialog.sentenceEng"
                   label="ประโยคภาษาอังกฤษ"
-                  :rules="[value => !!value ]"
-                  ref="sentenceEng"
+                  :error="isErrorHasSentenceEng"
                 />
               </div>
               <div class="col-md-12 col-xs-12">
@@ -354,8 +315,7 @@
                   outlined
                   v-model="dialog.sentenceThai"
                   label="ประโยคภาษาไทย"
-                  :rules="[value => !!value ]"
-                  ref="sentenceThai"
+                  :error="isErrorHasSentenceThai"
                 />
               </div>
               <div class="q-py-md col-12" align="center" v-show="!editDialogMode">
@@ -366,17 +326,9 @@
                   @click="saveDialogBtn()"
                 >บันทึก</q-btn>
               </div>
-              <div class="q-py-md col-12" align="center" v-show="editDialogMode">
-                <q-btn style="width:120px;" class="q-mr-sm" @click="backeditBtn()">ยกเลิก</q-btn>
-                <q-btn
-                  style="width:120px;"
-                  class="bg-secondary text-white q-ml-sm"
-                  @click="saveEditDialogBtn()"
-                >บันทึก</q-btn>
-              </div>
 
               <!-- start table -->
-              <div class="row relative-position" style="width:100%" v-show="!editDialogMode">
+              <div class="row relative-position" style="width:100%">
                 <div style="width: 100%">
                   <div
                     class="q-my-md row text-subtitle1"
@@ -449,6 +401,126 @@
                 </div>
               </div>
               <!-- end table -->
+
+              <!-- แสดงไดอล็อคแก้ไขข้อมูล -->
+              <div>
+                <q-dialog v-model="editDialogMode" persistent>
+                  <q-card style="min-width: 380px">
+                    <q-card-section>
+                      <div class="text-h6">แก้ไขบทสนทนา</div>
+                    </q-card-section>
+                    <q-card-section>
+                      <q-input
+                        outlined
+                        v-model="dialog.orderId"
+                        label="ลำดับประโยค"
+                        type="number"
+                        :rules="[value => !!value ]"
+                        ref="dialogOrder"
+                        autofocus
+                        class="q-py-sm"
+                      />
+                      <q-select
+                        class="q-py-sm"
+                        outlined
+                        v-model="dialog.speakerKey"
+                        :options="optionsSpeaker"
+                        emit-value
+                        map-options
+                        label="ผู้สนทนา"
+                      />
+                      <div class="q-py-sm">
+                        <div
+                          style="height: 57px;  border: 1px solid #bdbdbd"
+                          class="rounded-borders"
+                        >
+                          <div v-if="!isFile" class="q-my-sm">
+                            <table>
+                              <tr>
+                                <td style="width: 50px;">
+                                  <div class="q-pt-xs q-pl-sm text-body1 text-grey-7 q-pr-md">เสียง</div>
+                                </td>
+                                <td>
+                                  <q-input
+                                    borderless
+                                    :type=" 'file'"
+                                    @input="value => {file= value}"
+                                    style="height:30px;"
+                                    class="q-pt-lg"
+                                    accept=".mp3"
+                                    ref="fileInput"
+                                  ></q-input>
+                                </td>
+                              </tr>
+                            </table>
+                          </div>
+
+                          <div v-if="isFile">
+                            <div class="row justify-between">
+                              <div class="q-my-xs q-pt-sm text-secondary">
+                                <div class="text-body1 q-pt-xs q-px-sm">
+                                  <span class="text-grey-7">เสียง</span>
+                                  <q-icon class="q-px-md" name="fas  fa-play" />
+                                  <u
+                                    @click="playsound(dialog.url)"
+                                    class="cursor-pointer"
+                                  >ฟังเสียงคำศัพท์</u>
+                                </div>
+                              </div>
+                              <div>
+                                <q-btn
+                                  class="q-my-sm text-body1 text-blue-grey-10"
+                                  flat
+                                  @click="deleteSoundBtn()"
+                                  round
+                                  push
+                                  icon="fas fa-trash-alt"
+                                  size="md"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <q-input
+                        class="q-py-sm"
+                        outlined
+                        v-model="dialog.sentenceEng"
+                        label="ประโยคภาษาอังกฤษ"
+                        :rules="[value => !!value ]"
+                        ref="sentenceEng"
+                      />
+
+                      <q-input
+                        class="q-py-sm"
+                        outlined
+                        v-model="dialog.sentenceThai"
+                        label="ประโยคภาษาไทย"
+                        :rules="[value => !!value ]"
+                        ref="sentenceThai"
+                      />
+                    </q-card-section>
+
+                    <q-card-actions align="right" class="text-primary">
+                      <q-btn
+                        style="width:120px;"
+                        class="q-mr-sm"
+                        label="ยกเลิก"
+                        @click="cancelEditDialogBtn()"
+                        v-close-popup
+                      />
+                      <q-btn
+                        style="width:120px;"
+                        class="bg-secondary text-white q-ml-sm"
+                        label="บันทึก"
+                        @click="saveDialogBtn()"
+                        v-close-popup
+                      />
+                    </q-card-actions>
+                  </q-card>
+                </q-dialog>
+              </div>
             </div>
           </q-tab-panel>
         </q-tab-panels>
@@ -496,7 +568,7 @@ export default {
       //ผู้สนทนา
       isErrorHasSpeakerEng: false,
       isErrorHasSpeakerThai: false,
-      isSpeakerMode: true,
+      isSpeakerMode: true, // ตัวเปิดแถบ ผู้สนทนา - true เปิดได้ / false ปิด
       isSpeakerEditMode: false,
       speaker: {
         speakerEng: "",
@@ -530,13 +602,18 @@ export default {
       ],
 
       //บทสนทนา
-      isSentenMode: true,
+      isErrorHasOrder: false,
+      isErrorHasSentenceEng: false,
+      isErrorHasSentenceThai: false,
+      isSentenceMode: true, // ตัวเปิดแถบ บทสนทนา - true เปิดได้ / false ปิด
+      isSentenceEditMode: false,
       optionsSpeaker: [],
       dialog: {
         orderId: "",
         speakerKey: "",
         sentenceEng: "",
-        sentenceThai: ""
+        sentenceThai: "",
+        url: ""
       },
       sentenceData: [],
       isFile: false,
@@ -545,50 +622,16 @@ export default {
     };
   },
   methods: {
-    //****save edit dialog */
-    //****ลบไฟล์เสียงในบทสนทนา ***********/
-    deleteSoundBtn() {},
-    //*****ยกเลิก Dialog *****/
-    backeditBtn() {
-      this.editDialogMode = false;
-      this.$router.push("/landing/" + this.dockey + "/4");
-    },
-    //****แก้ไข Dialog */
-    editDialog(key) {
-      this.editDialogMode = true;
-      this.dataDb
-        .collection("sentence")
-        .doc(key)
-        .get()
-        .then(data => {
-          this.dialog = data.data();
-          if (this.dialog.url.length) {
-            this.isFile = true;
-          }
-        });
-    },
-    //****ลบ Dialog */
-    deleteDialog(key) {
-      this.$q
-        .dialog({
-          title: "คำเตือน",
-          message: "คุณต้องการลบข้อมูลหรือไม่",
-          cancel: true,
-          persistent: true
-        })
-        .onOk(() => {
-          this.dataDb
-            .collection("sentence")
-            .doc(key)
-            .delete()
-            .then(() => {
-              this.notifyRed("ลบข้อมูลเรียบร้อย");
+    //****************** ทั่วไปใช้ร่วมกัน ******************/
 
-              this.loadDialog();
-            });
-        });
+    /****** ปุ่มยกเลิกใช้กับทุกหน้า ******/
+    backBtn() {
+      this.$router.push("/dialog");
     },
-    //************* */ บันทึกสถานการณ์
+
+    //****************** Start Zone สถานการณ์ ******************/
+
+    /****** บันทึกสถานการณ์ ******/
     async saveSituBtn() {
       // ฟังกืชันเอาเวลาในเครื่อง เอาไว้ใส่ในเวลบาดราฟแล้วก็ปุ่มซิงค์ข้อมูล
       let microtime = await this.loadTime();
@@ -643,7 +686,48 @@ export default {
       }
     },
 
-    /*************บันทึกไฟล์ VDO***********/
+    /****** โหลดข้อมูลตำแหน่งในหน้าสถานการณ์ ******/
+    loadPosition() {
+      this.$q.loading.show();
+      db.collection("Position")
+        .where("status", "==", true)
+        .get()
+        .then(doc => {
+          doc.forEach(element => {
+            let dataId = { key: element.id };
+            let data = element.data();
+            let final = { ...dataId, ...data };
+            // console.log(final);
+            this.positionData.push(final);
+            this.$q.loading.hide();
+          });
+        });
+    },
+
+    /****** Select All ในหน้าสถานการณ์ ******/
+    selecisCheckAll() {
+      if (this.isCheckAll) {
+        for (let i = 0; i < this.positionData.length; i++) {
+          const element = this.positionData[i];
+          this.situation.positionSelec.push(element.key);
+        }
+      } else {
+        this.situation.positionSelec = [];
+      }
+    },
+
+    /****** select All ในหน้าสถานการณ์ ******/
+    checkBoxChanged() {
+      if (this.situation.positionSelec.length == this.positionData.length) {
+        this.isCheckAll = true;
+      } else {
+        this.isCheckAll = false;
+      }
+    },
+
+    //****************** Start Zone VDO ******************/
+
+    /****** บันทึกไฟล์ VDO ******/
     async saveVdo(data) {
       let microtime = await this.loadTime();
       let fileVdo = data[0];
@@ -663,7 +747,7 @@ export default {
         });
     },
 
-    /***************ลบไฟล์ VDO */
+    /****** ลบไฟล์ VDO ******/
     async delVdoBtn() {
       let microtime = await this.loadTime();
       this.$q
@@ -693,10 +777,30 @@ export default {
         });
     },
 
-    /*************บันทึกผู้สนทนา***********/
+    /****** โหลดข้อมูลใน mode edit ******/
+    async loadBasicData() {
+      //load ข้อมูลหน้า
+      try {
+        let dataPath = await st
+          .child("videos/dialog/" + this.dockey + ".mp4")
+          .getDownloadURL();
+
+        this.isUploadComplete = true;
+      } catch (err) {
+        this.isUploadComplete = false;
+      }
+      this.dataDb.get().then(data => {
+        //load ข้อมูลหน้าสถานการณ์
+        this.situation = data.data();
+        this.checkBoxChanged();
+      });
+    },
+
+    //****************** Start Zone ผู้สนทนา ******************/
+
+    /****** บันทึกผู้สนทนา ******/
     saveSpeakBtn() {
-      // this.$refs.speakerEng.validate(); // ช่องชื่อผู้สนทนาภาษาอังกฤษ
-      // this.$refs.speakerThai.validate(); // ช่องชื่อผู้สนทนาภาษาไทย
+      // ช่องชื่อผู้สนทนาภาษาอังกฤษ
       if (this.speaker.speakerEng == "") {
         this.isErrorHasSpeakerEng = true;
         this.notifyRed("กรุณากรอกข้อมูลให้ครบถ้วน");
@@ -704,6 +808,7 @@ export default {
       } else {
         this.isErrorHasSpeakerEng = false;
       }
+      // ช่องชื่อผู้สนทนาภาษาไทย
       if (this.speaker.speakerThai == "") {
         this.isErrorHasSpeakerThai = true;
         this.notifyRed("กรุณากรอกข้อมูลให้ครบถ้วน");
@@ -712,14 +817,9 @@ export default {
         this.isErrorHasSpeakerThai = false;
       }
 
-      // if (this.$refs.speakerEng.hasError || this.$refs.speakerThai.hasError) {
-      //   this.has = true;
-      //   this.notifyRed("กรุณากรอกข้อมูลให้ครบถ้วน");
-      //   return;
-      // }
-
       this.$q.loading.show();
       if (this.isSpeakerEditMode == true) {
+        /******  edit mode ******/
         this.db.dialogData
           .doc(this.dockey)
           .collection("speaker")
@@ -739,6 +839,7 @@ export default {
             this.$q.loading.hide();
           });
       } else {
+        /****** add mode ******/
         this.db.dialogData
           .doc(this.dockey)
           .collection("speaker")
@@ -746,7 +847,7 @@ export default {
           .then(async () => {
             let microtime = await this.loadTime();
             this.db.dialog.set({ saveDraft: microtime });
-            this.isSentenMode = true;
+            this.isSentenceMode = true;
             this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
             this.speaker.speakerEng = "";
             this.speaker.speakerThai = "";
@@ -757,9 +858,8 @@ export default {
           });
       }
     },
-    // editSpeaker() {},
 
-    //**************โหลดข้อมูลผู้สนทนา
+    /****** โหลดข้อมูลผู้สนทนาเพื่อแสดงข้อมูลในตาราง ******/
     loadSpeaker() {
       this.speakerData = [];
       this.optionsSpeaker = [];
@@ -792,11 +892,12 @@ export default {
             this.dialog.speakerKey = this.optionsSpeaker[0].value;
 
             this.loadDialog();
+            this.loadingHide();
           }
         });
     },
 
-    //**************** ลบผู้สนทนา */
+    /****** ลบผู้สนทนา ******/
     async deleteSpeaker(key) {
       let microtime = await this.loadTime();
       this.$q
@@ -820,7 +921,7 @@ export default {
         });
     },
 
-    //************แก้ไขผู้สนทนา */
+    /****** โหลดข้อมูลผู้สนทนาเพื่อแก้ไข ******/
     editSpeaker(key) {
       this.isSpeakerEditMode = true;
       this.speakerEditKey = key;
@@ -836,83 +937,11 @@ export default {
         });
     },
 
-    //**************ปุ่มยกเลิกกรณีแก้ไขผู้สนทนา */
-    backBtn2() {
-      this.isSpeakerEditMode = false;
-      this.speaker.speakerEng = "";
-      this.speaker.speakerThai = "";
-    },
+    //****************** Start Zone บทสนทนา ******************/
 
-    //****บันทึกบทสนทนา */
-    saveDialogBtn() {
-      let pageNo = this.$route.params.page;
-      this.$refs.dialogOrder.validate(); // ช่องเลขลำดับ
-      this.$refs.sentenceEng.validate(); // ช่องประโยคสนทนาภาษาอังกฤษ
-      this.$refs.sentenceThai.validate(); // ช่องประโยคสนทนาภาษาไทย
-
-      if (
-        this.$refs.dialogOrder.hasError ||
-        this.$refs.sentenceEng.hasError ||
-        this.$refs.sentenceThai.hasError
-      ) {
-        this.notifyRed("กรุณากรอกข้อมูลให้ครบถ้วน");
-        return;
-      }
-
-      this.$q.loading.show();
-      this.db.dialogData
-        .doc(this.dockey)
-        .collection("sentence")
-        .add(this.dialog)
-        .then(doc => {
-          //save sound file
-          if (this.file != "") {
-            st.child("audios/dialog/" + doc.id + ".mp3")
-              .put(this.file[0])
-              .then(res => {
-                st.child("audios/dialog/" + doc.id + ".mp3")
-                  .getDownloadURL()
-                  .then(res => {
-                    this.dataDb
-                      .collection("sentence")
-                      .doc(doc.id)
-                      .update({
-                        url: res
-                      })
-                      .then(() => {
-                        this.$router.push("/landing/" + this.dockey + "/4");
-                      });
-                  });
-              });
-          } else {
-            this.db.dialogData
-              .doc(this.dockey)
-              .collection("sentence")
-
-              .doc(doc.id)
-              .update({
-                url: ""
-              });
-          }
-          this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-          this.dialog.orderId = "";
-          this.dialog.sentenceEng = "";
-          this.dialog.sentenceThai = "";
-          this.loadDialog();
-          this.$q.loading.hide();
-        });
-    },
-
-    ///***********เล่นเสียง */
-    playsound(url) {
-      let audio = new Audio(url);
-      setTimeout(() => {
-        audio.play();
-      }, 1000);
-    },
-
-    //******load ข้อมูลบทสนทนา */
+    /****** โหลดข้อมูลบทสนทนาเพื่อแสดงในตาราง ******/
     loadDialog() {
+      this.loadingShow();
       this.sentenceData = [];
       this.db.dialogData
         .doc(this.dockey)
@@ -940,86 +969,228 @@ export default {
                 this.sentenceData.sort((a, b) => {
                   return Number(a.orderId) - Number(b.orderId);
                 });
+                this.loadingHide();
               });
           });
         });
     },
-    //***********upload ไฟล์เสียง ************/
 
-    //************ลบไฟล์เสียง ****************/
+    /****** บันทึกบทสนทนา ******/
+    saveDialogBtn() {
+      let pageNo = this.$route.params.page;
 
-    //***********ลบ Dialog **************/
+      // ช่องชื่อผู้สนทนาภาษาอังกฤษ
+      if (this.dialog.orderId == "") {
+        this.isErrorHasOrder = true;
+        this.notifyRed("กรุณากรอกข้อมูลให้ครบถ้วน");
+        return;
+      } else {
+        this.isErrorHasOrder = false;
+      }
 
-    //**********edit Dialog **************/
+      // ช่องชื่อผู้สนทนาภาษาอังกฤษ
+      if (this.dialog.sentenceEng == "") {
+        this.isErrorHasSentenceEng = true;
+        this.notifyRed("กรุณากรอกข้อมูลให้ครบถ้วน");
+        return;
+      } else {
+        this.isErrorHasSentenceEng = false;
+      }
 
-    //**********ยกเลิกแก้ไข Dialog **************/
+      // ช่องชื่อผู้สนทนาภาษาอังกฤษ
+      if (this.dialog.sentenceThai == "") {
+        this.isErrorHasSentenceThai = true;
+        this.notifyRed("กรุณากรอกข้อมูลให้ครบถ้วน");
+        return;
+      } else {
+        this.isErrorHasSentenceThai = false;
+      }
 
-    //************ โหลดข้อมูลตำแหน่งในหน้าสถานการณ์
-    loadPosition() {
-      this.$q.loading.show();
-      db.collection("Position")
-        .where("status", "==", true)
-        .get()
-        .then(doc => {
-          doc.forEach(element => {
-            let dataId = { key: element.id };
-            let data = element.data();
-            let final = { ...dataId, ...data };
-            // console.log(final);
-            this.positionData.push(final);
-            this.$q.loading.hide();
+      // this.$refs.dialogOrder.validate(); // ช่องเลขลำดับ
+      // this.$refs.sentenceEng.validate(); // ช่องประโยคสนทนาภาษาอังกฤษ
+      // this.$refs.sentenceThai.validate(); // ช่องประโยคสนทนาภาษาไทย
+
+      // if (
+      //   this.$refs.dialogOrder.hasError ||
+      //   this.$refs.sentenceEng.hasError ||
+      //   this.$refs.sentenceThai.hasError
+      // ) {
+      //   this.notifyRed("กรุณากรอกข้อมูลให้ครบถ้วน");
+      //   return;
+      // }
+
+      if (this.isSentenceEditMode) {
+        this.loadingShow();
+        this.db.dialogData
+          .doc(this.dockey)
+          .collection("sentence")
+          .doc()
+          .set(this.dialog)
+          .then(doc => {
+            console.log("edit");
+            // //save sound file
+            // if (this.file != "") {
+            //   st.child("audios/dialog/" + doc.id + ".mp3")
+            //     .put(this.file[0])
+            //     .then(res => {
+            //       st.child("audios/dialog/" + doc.id + ".mp3")
+            //         .getDownloadURL()
+            //         .then(res => {
+            //           this.dataDb
+            //             .collection("sentence")
+            //             .doc(doc.id)
+            //             .update({
+            //               url: res
+            //             })
+            //             .then(() => {
+            //               this.$router.push("/landing/" + this.dockey + "/4");
+            //             });
+            //         });
+            //     });
+            // } else {
+            //   this.db.dialogData
+            //     .doc(this.dockey)
+            //     .collection("sentence")
+            //     .doc(doc.id)
+            //     .update({
+            //       url: ""
+            //     });
+            // }
           });
+
+        this.loadingHide();
+      } else {
+        this.loadingShow();
+        this.db.dialogData
+          .doc(this.dockey)
+          .collection("sentence")
+          .add(this.dialog)
+          .then(doc => {
+            //save sound file
+            if (this.file != "") {
+              st.child("audios/dialog/" + doc.id + ".mp3")
+                .put(this.file[0])
+                .then(res => {
+                  st.child("audios/dialog/" + doc.id + ".mp3")
+                    .getDownloadURL()
+                    .then(res => {
+                      this.dataDb
+                        .collection("sentence")
+                        .doc(doc.id)
+                        .update({
+                          url: res
+                        })
+                        .then(() => {
+                          this.$router.push("/landing/" + this.dockey + "/4");
+                        });
+                    });
+                });
+            } else {
+              this.db.dialogData
+                .doc(this.dockey)
+                .collection("sentence")
+                .doc(doc.id)
+                .update({
+                  url: ""
+                });
+            }
+            this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+            this.dialog = {};
+            this.loadSpeaker();
+            // this.loadDialog();
+            // ตัวเช็ค Error สั่งปิด
+            this.isErrorHasSentenceThai = false;
+            this.isErrorHasSentenceEng = false;
+            this.isErrorHasOrder = false;
+            this.isSentenceEditMode = false;
+            this.loadingHide();
+          });
+      }
+    },
+
+    /****** เล่นเสียง ******/
+    playsound(url) {
+      let audio = new Audio(url);
+      setTimeout(() => {
+        audio.play();
+      }, 1000);
+    },
+
+    /****** โหลดข้อมูลแก้ไข Dialog ******/
+    editDialog(key) {
+      this.loadingShow();
+      this.isSentenceEditMode = true;
+      this.editDialogMode = true;
+      this.dataDb
+        .collection("sentence")
+        .doc(key)
+        .get()
+        .then(data => {
+          this.dialog = data.data();
+          if (this.dialog.url.length) {
+            this.isFile = true;
+          }
+          this.loadingHide();
         });
     },
 
-    //*************โหลดข้อมูลใน mode edit */
-    async loadBasicData() {
-      //load ข้อมูลหน้า
-      try {
-        let dataPath = await st
-          .child("videos/dialog/" + this.dockey + ".mp4")
-          .getDownloadURL();
+    /****** ลบ Dialog ******/
+    deleteDialog(key) {
+      this.$q
+        .dialog({
+          title: "คำเตือน",
+          message: "คุณต้องการลบข้อมูลหรือไม่",
+          cancel: true,
+          persistent: true
+        })
+        .onOk(() => {
+          this.dataDb
+            .collection("sentence")
+            .doc(key)
+            .delete()
+            .then(() => {
+              this.notifyRed("ลบข้อมูลเรียบร้อย");
 
-        this.isUploadComplete = true;
-      } catch (err) {
-        this.isUploadComplete = false;
-      }
-      this.dataDb.get().then(data => {
-        //load ข้อมูลหน้าสถานการณ์
-        this.situation = data.data();
-        this.checkBoxChanged();
-      });
+              this.loadDialog();
+            });
+        });
     },
 
-    //**************ปุ่มยกเลิกทั่วไป ***********/
-    backBtn() {
-      this.$router.push("/dialog");
+    /****** ลบไฟล์เสียงในบทสนทนา ******/
+    deleteSoundBtn() {
+      this.$q
+        .dialog({
+          title: "คำเตือน",
+          message: "คุณต้องการลบเสียงหรือไม่",
+          cancel: true,
+          persistent: true
+        })
+        .onOk(() => {
+          // this.isFile = false;
+        });
     },
 
-    //*********** Select All ในหน้าสถานการณ์ */
-    selecisCheckAll() {
-      if (this.isCheckAll) {
-        for (let i = 0; i < this.positionData.length; i++) {
-          const element = this.positionData[i];
-          this.situation.positionSelec.push(element.key);
-        }
+    /****** เช็คไฟล์เสียงว่ามีไหม ******/
+    checkSoundHas() {
+      if (this.dialog.url == "") {
+        this.isFile = false;
       } else {
-        this.situation.positionSelec = [];
+        this.isFile = true;
       }
     },
 
-    //***********select All ในหน้าสถานการณ์ */
-    checkBoxChanged() {
-      if (this.situation.positionSelec.length == this.positionData.length) {
-        this.isCheckAll = true;
-      } else {
-        this.isCheckAll = false;
-      }
+    /****** ปุ่มยกเลิก ******/
+    cancelEditDialogBtn() {
+      this.isFile = false;
+      this.loadSpeaker();
+      // this.loadDialog();
+      this.dialog = {};
     }
   },
 
   mounted() {
     this.loadPosition();
+    this.checkSoundHas();
     // this.loadSpeaker(); ///temp
     // this.loadDialog(); // temp
 
@@ -1043,7 +1214,7 @@ export default {
     } else {
       this.isVdoMode = false;
       this.isSpeakerMode = false;
-      this.isSentenMode = false;
+      this.isSentenceMode = false;
     }
   }
 };

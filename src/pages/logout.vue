@@ -5,10 +5,7 @@
       enter-active-class="animated bounceInDown"
       leave-active-class="animated bounceOutUp"
     >
-      <div
-        class="row my-hv justify-center items-center relative-position"
-        v-show="isLoadData"
-      >
+      <div class="row my-hv justify-center items-center relative-position" v-show="isLoadData">
         <div
           class="bg-grey-2 rounded-borders relative-position shadow-4"
           style="max-width: 360px; width:90%; height: fit-content"
@@ -18,63 +15,34 @@
             class="bg-secondary absolute-top rounded-borders q-pa-xs"
             style="width:50px; height: calc(100vh - 50%); margin: auto; top: calc(-100vh + 260px)"
           >
-            <div
-              class="rounded-borders full-width full-height"
-              style="border: 1px dashed black"
-            ></div>
+            <div class="rounded-borders full-width full-height" style="border: 1px dashed black"></div>
           </div>
           <div class="bg-blue-grey-10 rounded-borders">
-            <div
-              class="q-pa-sm"
-              align="center"
-            >
+            <div class="q-pa-sm" align="center">
               <div class="my-border rounded-borders bg-black"></div>
             </div>
             <div class="row justify-center text-white">
               <div>
-                <img
-                  class
-                  style="width:50px; "
-                  src="../assets/loginxs.png"
-                  alt
-                />
+                <img class style="width:50px; " src="../assets/loginxs.png" alt />
               </div>
-              <div
-                class="q-px-sm"
-                style="height: 30px; line-height: 30px"
-              >
+              <div class="q-px-sm" style="height: 30px; line-height: 30px">
                 <span class="text-h5">Winner@work</span>
               </div>
             </div>
           </div>
           <div class="q-pt-md q-px-md q-pb-lg">
-            <div
-              align="center"
-              class="text-h5"
-            >
+            <div align="center" class="text-h5">
               <span>ออกจากระบบ</span>
             </div>
 
-            <div
-              class="q-pt-lg"
-              align="center"
-            >
-              <q-img
-                :src="'../statics/avatar/' + showUser.avatar + '.png'"
-                style="width:120px"
-              />
+            <div class="q-pt-lg" align="center">
+              <q-img :src="'../statics/avatar/' + showUser.avatar + '.png'" style="width:120px" />
             </div>
-            <div
-              align="center"
-              class="q-pt-md text-h6"
-            >
+            <div align="center" class="q-pt-md text-h6">
               <span>{{showUser.name}}</span>
             </div>
 
-            <div
-              align="center"
-              class="q-pt-lg"
-            >
+            <div align="center" class="q-pt-lg">
               <q-btn
                 @click="logoutHere()"
                 color="secondary"
@@ -82,10 +50,7 @@
                 :disable="!isLoadData"
               >เฉพาะอุปกรณ์ปัจจุบัน</q-btn>
             </div>
-            <div
-              align="center"
-              class="q-pt-md"
-            >
+            <div align="center" class="q-pt-md">
               <q-btn
                 @click="logoutAll()"
                 color="secondary"
@@ -93,10 +58,7 @@
                 :disable="!isLoadData"
               >อุปกรณ์ทั้งหมด</q-btn>
             </div>
-            <div
-              align="center"
-              class="q-pt-md"
-            >
+            <div align="center" class="q-pt-md">
               <q-btn
                 @click="cancelBtn()"
                 color="grey-2"
