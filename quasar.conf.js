@@ -65,7 +65,8 @@ module.exports = function (ctx) {
         "QTabPanel",
         "QCheckbox",
         "QPagination",
-        'QDialog'
+        'QDialog',
+        "QSeparator"
       ],
 
       directives: [
