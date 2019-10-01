@@ -106,7 +106,7 @@
                 align="center"
               >
                 <div style=" width:50px; height: 50px">
-                  <q-icon class="q-mt-md" name="fas fa-chevron-right"></q-icon>
+                  <q-icon size="20px" class="q-mt-md" name="fas fa-chevron-right"></q-icon>
                 </div>
               </td>
             </tr>
