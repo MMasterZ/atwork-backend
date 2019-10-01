@@ -170,6 +170,24 @@ export default {
     };
   },
   methods: {
+    // โหลดตำแหน่ง
+    loadPosition() {
+      this.loadingShow();
+      this.db.position.get().then(doc => {
+        this.positionArry = [];
+        if (doc.size > 0) {
+          doc.forEach(element => {
+            let dataKey = {
+              label: element.data().name,
+              value: element.id
+            };
+            this.positionArry.push(dataKey);
+          });
+        }
+        this.obj.positionKey = this.$q.localStorage.getItem("currentposition");
+        this.loadSituation();
+      });
+    },
     // โหลดสถานการณ์
     loadSituation() {
       this.loadingShow();
@@ -185,40 +203,20 @@ export default {
                 value: element.id
               };
               this.situationArry.push(data);
-              this.obj.situationKey = this.situationArry[0].value;
-              if (this.editMode) {
-                this.loadedit();
-              }
-              this.loadingHide();
             });
-          } else {
-            this.obj.situationKey = "-";
+            this.obj.situationKey = this.situationArry[0].value;
             this.loadingHide();
           }
+          //  else {
+          //   this.obj.situationKey = "-";
+          //   this.loadingHide();
+          // }
         });
     },
-    // โหลดตำแหน่ง
-    loadPosition() {
-      this.loadingShow();
-      this.db.position.get().then(doc => {
-        this.positionArry = [];
-        if (doc.size > 0) {
-          doc.forEach(element => {
-            let dataKey = {
-              label: element.data().name,
-              value: element.id
-            };
-            this.positionArry.push(dataKey);
-            this.obj.positionKey = this.$q.localStorage.getItem(
-              "currentposition"
-            );
-          });
-        }
-        this.loadSituation();
-      });
-    },
+
     // โหลดเสียง หน้าแก้ไข
     async loadedit() {
+      this.loadingShow();
       try {
         let doc = await st
           .child("audios/" + this.$route.params.key + ".mp3")
@@ -235,7 +233,8 @@ export default {
         .get()
         .then(doc => {
           this.obj = doc.data();
-          this.loadingHide();
+          this.loadPosition();
+
           // this.loadSituation()
         });
     },
@@ -269,11 +268,7 @@ export default {
           persistent: true
         })
         .onOk(() => {
-          st.child("audios/" + this.$route.params.key + ".mp3")
-            .delete()
-            .then(url => {
-              this.isFile = false;
-            });
+          this.isFile = false;
         });
     },
     // ปุ่มย้อนกลับ
@@ -378,7 +373,7 @@ export default {
     if (this.$route.name == "expressionedit") {
       this.titlePage = "แก้ไขประโยค";
       this.editMode = true;
-      this.loadPosition();
+      this.loadedit();
     } else {
       this.editMode = false;
       this.loadPosition();

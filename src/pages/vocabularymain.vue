@@ -90,7 +90,10 @@
           :key="index"
           class="col-md-3 col-sm-6 col-xs-12 q-px-md-md q-px-sm-md q-py-sm"
         >
-          <q-toolbar class="rounded-borders no-padding q-py-sm col-md-3 shadow-5 bg-grey-2">
+          <q-toolbar
+            @click="editBtn(item.key)  "
+            class="pointer rounded-borders no-padding q-py-sm col-md-3 shadow-5 bg-grey-2"
+          >
             <q-btn
               flat
               dense
@@ -105,14 +108,9 @@
               <div class="text-body1">{{item.vocab}}</div>
               <div class="text-body1">{{item.meaning}}</div>
             </q-toolbar-title>
-
-            <q-btn
-              flat
-              @click="editBtn(item.key)"
-              dense
-              icon="fas fa-chevron-right"
-              style=" height:70px"
-            />
+            <div class="pointer" @click="editBtn(item.key)  ">
+              <q-icon size="20px" class="q-mr-sm" name="fas fa-chevron-right"></q-icon>
+            </div>
           </q-toolbar>
         </div>
       </div>

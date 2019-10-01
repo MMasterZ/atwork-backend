@@ -99,10 +99,15 @@
                 <br />
                 <span class="q-px-xs">{{item.sentenceThai}}</span>
               </td>
-              <td @click="editBtn(item.key)" class="q-pl-md" style=" width:50px;" align="center">
-                <q-btn style=" width:50px; height: 50px" flat>
-                  <q-icon name="fas fa-chevron-right"></q-icon>
-                </q-btn>
+              <td
+                @click="editBtn(item.key)"
+                class="q-pl-md hoverpoint"
+                style=" width:50px;"
+                align="center"
+              >
+                <div style=" width:50px; height: 50px">
+                  <q-icon size="20px" class="q-mt-md" name="fas fa-chevron-right"></q-icon>
+                </div>
               </td>
             </tr>
           </table>
@@ -247,8 +252,8 @@ export default {
                     key: element.id
                   };
                   let final = {
-                    ...dataKey,
-                    ...element.data()
+                    ...element.data(),
+                    ...dataKey
                   };
                   this.expressionList.push(final);
                   this.expressionList.sort((a, b) => {
