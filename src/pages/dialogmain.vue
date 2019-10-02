@@ -364,7 +364,8 @@ export default {
         });
     },
     // ลบข้อมูล VDO ทั้งหมด
-    deleteBtn(key) {
+    async deleteBtn(key) {
+      let microtime = await this.loadTime();
       this.$q
         .dialog({
           title: "ยืนยัน",
@@ -382,7 +383,9 @@ export default {
 
           db.collection("Dialog")
             .doc("draft")
-            .set();
+            .set({
+              saveDraft: microtime
+            });
 
           dbx
             .collection("sentence")
@@ -407,9 +410,8 @@ export default {
                   dbx.delete().then(() => {
                     this.notifyRed("ลบข้อมูลเรียบร้อย");
                     this.loadDialog();
-                    this.loadPosition();
-                    this.loadPositionServer();
-                    this.checkSyncData();
+                    console.log("amm");
+                    this.isSync = false;
                     this.loadingHide();
                   });
                 });
@@ -523,11 +525,13 @@ export default {
     checkSyncData() {
       let saveDraft = "";
       let saveServer = "";
+      // console.log("test");
       db.collection("Dialog")
         .doc("draft")
         .get()
         .then(doc => {
           saveDraft = doc.data().saveDraft;
+          console.log("draft" + saveDraft);
           db.collection("Dialog")
             .doc("server")
             .get()
@@ -535,7 +539,10 @@ export default {
               saveServer = doc.data().saveServer;
               // เมื่อค่า ดราฟ มีค่าเวลาเซิฟมากกว่า จะสามารถซิงค์ข้อมูลได้
               if (saveDraft <= saveServer) {
+                console.log("server" + saveServer);
                 // เมื่อค่าเวลาน้อยกว่าหรือเท่ากับจะไม่สามารถซิงค์ข้อมูลได้
+                this.isSync = false;
+              } else {
                 this.isSync = true;
               }
             });
