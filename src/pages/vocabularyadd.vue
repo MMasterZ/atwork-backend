@@ -170,7 +170,6 @@ export default {
       this.loadingShow();
       //
       let microtime = await this.loadTime();
-
       //
       this.$refs.vocabInput.validate();
       this.$refs.meaning.validate();
@@ -201,41 +200,7 @@ export default {
                   this.$router.push("/vocabulary");
                 });
             } else {
-              // กรณีเพิ่มใหม่
-
-              db.collection("Vocabulary")
-                .doc("draft")
-                .collection("data")
-                .add(this.general)
-                .then(doc => {
-                  //นำไฟล์เสียงเข้าสู่ระบบ
-                  if (this.file != "") {
-                    st.child("audios/vocab/" + doc.id + ".mp3")
-                      .put(this.file[0])
-                      .then(() => {
-                        st.child("audios/vocab/" + doc.id + ".mp3")
-                          .getDownloadURL()
-                          .then(res => {
-                            db.collection("Vocabulary")
-                              .doc("draft")
-                              .collection("data")
-                              .doc(doc.id)
-                              .update({
-                                url: res
-                              })
-                              .then(() => {
-                                this.$q.loading.hide();
-                                this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-                                this.$router.push("/vocabulary");
-                              });
-                          });
-                      });
-                  } else {
-                  }
-                  this.$q.loading.hide();
-                  this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-                  this.$router.push("/vocabulary");
-                });
+              this.$router.push("/vocabulary");
               this.db.vocabData.add(this.general).then(doc => {
                 //นำไฟล์เสียงเข้าสู่ระบบ
                 if (this.file != "") {
@@ -293,6 +258,7 @@ export default {
             .doc(key)
             .delete()
             .then(() => {
+              st.child("audios/vocab/" + key + ".mp3").delete();
               this.loadingHide();
               this.notifyGreen("ลบข้อมูลเรียบร้อย");
               this.$router.push("/vocabulary");
@@ -325,9 +291,18 @@ export default {
     },
     //ลบเสียง
     async deleteSound() {
-      this.general.url = "";
-
-      this.isDeleteSound = true;
+      // this.general.url = "";
+      // this.isDeleteSound = true;
+      this.$q
+        .dialog({
+          title: "คำเตือน",
+          message: "คุณต้องการลบไฟล์เสียงนี้หรือไม่",
+          cancel: true,
+          persistent: true
+        })
+        .onOk(() => {
+          this.isFile = false;
+        });
     }
   },
   mounted() {

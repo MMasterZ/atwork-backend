@@ -33,7 +33,7 @@
           <q-tab name="draft" label="แบบร่าง" icon="fas fa-pen"></q-tab>
           <q-tab name="server" label="เซิร์ฟเวอร์" icon="fas fa-cloud"></q-tab>
           <q-space />
-          <q-input
+          <!-- <q-input
             v-model="search"
             filled
             class="desktop-only"
@@ -43,11 +43,11 @@
             <template v-slot:append>
               <q-icon name="search" />
             </template>
-          </q-input>
+          </q-input>-->
         </q-tabs>
       </div>
       <div class="row row justify-between q-pa-md">
-        <div class="col-md-6 col-sm-6 col-xs-7">
+        <div class="col-md-6 col-sm-6 col-xs-6">
           <q-select
             @input="loadData()"
             outlined
@@ -56,7 +56,7 @@
             :options="positionOptions"
           />
         </div>
-        <div class="col-md-6 col-sm-6 q-py-sm" align="right">
+        <div class="col-md-6 col-sm-6 col-xs-6 q-py-sm" align="right">
           <q-btn
             @click="addBtn()"
             size="md"
@@ -72,13 +72,13 @@
             icon="fas fa-print"
             class="desktop-only text-body1 text-white"
           />
-          <q-btn
+          <!-- <q-btn
             size="md"
             color="secondary"
             round
             icon="fas fa-search"
             class="mobile-only text-body1 text-white"
-          />
+          />-->
         </div>
       </div>
       <div class="q-pb-lg flex flex-center">
@@ -88,15 +88,12 @@
         <div
           v-for="(item,index ) in   vocabularyList "
           :key="index"
-          class="col-md-3 col-sm-6 col-xs-12 q-px-md-md q-px-sm-md q-py-sm"
+          class="col-md-4 col-lg-3 col-sm-6 col-xs-12 q-mb-md-md q-mb-sm-sm q-px-md-md q-py-xs q-px-sm-md"
         >
-          <q-toolbar
-            @click="editBtn(item.key)  "
-            class="pointer rounded-borders no-padding q-py-sm col-md-3 shadow-5 bg-grey-2"
-          >
+          <q-toolbar class="pointer no-padding q-py-xs col-md-3 bg-grey-2 shadow-5 rounded-borders">
             <q-btn
+              square
               flat
-              dense
               icon="fas fa-volume-up"
               style="width:60px; height:70px"
               class="bg-secondary text-grey-2"
@@ -289,5 +286,8 @@ export default {
 <style scoped >
 .pointer:hover {
   cursor: pointer;
+}
+.card {
+  border: 1px solid black;
 }
 </style>

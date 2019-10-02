@@ -214,7 +214,6 @@ export default {
               ...dataKey,
               ...element.data()
             };
-
             newDepart.push(final);
           });
           // หาตำแหน่งของ Array ที่มีค่า name ="ไม่ระบุแผนก"
