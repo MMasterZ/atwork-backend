@@ -100,7 +100,7 @@
     <q-drawer v-model="drawer" :width="300" :breakpoint="1023" show-if-above>
       <q-scroll-area
         class="bg-blue-grey-10 text-white"
-        style="height: calc(100% - 120px); margin-top: 120px; "
+        style="height: calc(100% - 125px); margin-top: 125px; "
       >
         <q-list padding>
           <router-link to="/position" class="my-text-menu">
