@@ -441,9 +441,9 @@ export default {
   mounted() {
     if (this.$route.name == "positionedit") {
       this.loadData();
-      this.title = "แก้ไขตำแหน่ง";
+      this.title = "แก้ไขบทเรียน";
     } else {
-      this.title = "เพิ่มตำแหน่ง";
+      this.title = "เพิ่มบทเรียน";
     }
   }
 };

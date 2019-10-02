@@ -3,8 +3,8 @@
     <div class="my-border-left bg-blue-grey-10 q-py-md">
       <q-toolbar class="text-primary">
         <q-space />
-        <div class="mobile-only text-grey-2 text-h5">ตำแหน่ง</div>
-        <div class="desktop-only text-grey-2 text-h4">ตำแหน่ง</div>
+        <div class="mobile-only text-grey-2 text-h5">บทเรียน</div>
+        <div class="desktop-only text-grey-2 text-h4">บทเรียน</div>
         <q-space />
       </q-toolbar>
     </div>
