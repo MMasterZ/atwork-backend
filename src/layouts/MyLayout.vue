@@ -82,14 +82,14 @@
         </q-toolbar-title>
 
         <!-- เมนูตำแหน่ง -->
-        <q-toolbar-title class="text-h6" v-if="this.$route.name == 'positionmain'">ตำแหน่ง</q-toolbar-title>
+        <q-toolbar-title class="text-h6" v-if="this.$route.name == 'positionmain'">บทเรียน</q-toolbar-title>
         <q-toolbar-title class="text-h6" v-if="this.$route.name == 'positionadd'">
-          <router-link class="text-white text-weight-light" to="/position">ตำแหน่ง</router-link>&nbsp;>
-          เพิ่มตำแหน่ง
+          <router-link class="text-white text-weight-light" to="/position">บทเรียน</router-link>&nbsp;>
+          เพิ่มบทเรียน
         </q-toolbar-title>
         <q-toolbar-title class="text-h6" v-if="this.$route.name == 'positionedit'">
-          <router-link class="text-white text-weight-light" to="/position">ตำแหน่ง</router-link>&nbsp;>
-          แก้ไขตำแหน่ง
+          <router-link class="text-white text-weight-light" to="/position">บทเรียน</router-link>&nbsp;>
+          แก้ไขบทเรียน
         </q-toolbar-title>
 
         <!-- เมนูLogout -->
@@ -103,6 +103,20 @@
         style="height: calc(100% - 120px); margin-top: 120px; "
       >
         <q-list padding>
+          <router-link to="/position" class="my-text-menu">
+            <q-item
+              class="my-padding"
+              :class="{'text-light-blue-3': this.$route.name == 'positionmain' || this.$route.name == 'positionadd' || this.$route.name == 'positionedit'} "
+              clickable
+              v-ripple
+            >
+              <q-item-section avatar>
+                <q-icon name="fas fa-book" />
+              </q-item-section>
+              <q-item-section>บทเรียน</q-item-section>
+            </q-item>
+          </router-link>
+
           <router-link to="/vocabulary" class="my-text-menu">
             <q-item
               class="my-padding"
@@ -172,20 +186,6 @@
                 <q-icon name="fas fa-hotel" />
               </q-item-section>
               <q-item-section>สถานประกอบการ</q-item-section>
-            </q-item>
-          </router-link>
-
-          <router-link to="/position" class="my-text-menu">
-            <q-item
-              class="my-padding"
-              :class="{'text-light-blue-3': this.$route.name == 'positionmain' || this.$route.name == 'positionadd' || this.$route.name == 'positionedit'} "
-              clickable
-              v-ripple
-            >
-              <q-item-section avatar>
-                <q-icon name="fas fa-id-badge" />
-              </q-item-section>
-              <q-item-section>ตำแหน่ง</q-item-section>
             </q-item>
           </router-link>
 
