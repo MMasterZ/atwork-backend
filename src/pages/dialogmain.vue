@@ -40,7 +40,7 @@
         <!-- แบบร่าง -->
         <div v-show="tabShow == 'draft'" class="q-pa-md">
           <div class="q-pb-md row">
-            <div class="col-md-6 col-xs-12">
+            <div class="col-md-6 col-xs-10">
               <q-select
                 outlined
                 v-model="positionID"
@@ -51,7 +51,7 @@
                 map-options
               />
             </div>
-            <div class="col-md-6 col-xs-12 self-center" align="right">
+            <div class="col-md-6 col-xs-2 self-center" align="right">
               <q-btn
                 @click="addBtn()"
                 size="md"
@@ -62,17 +62,17 @@
               />
             </div>
           </div>
-          <div
-            class="row q-pa-md"
+          <q-card
+            class="row q-pa-md q-my-md relative-position"
             style="border: 1px solid #E0E0E0"
             v-for="(i , index) in dialogList"
             :key="index"
           >
-            <div class="col-md-3" style="width: 370px:">
-              <video :src="i.url" width="370px" controls></video>
+            <div class="col-md-3" style="max-width: 370px; width: 100%">
+              <video :src="i.url" style="max-width: 370px; width: 100%" controls></video>
             </div>
-            <div class="col-md-9 q-pl-lg">
-              <div class="row justify-end">
+            <div class="col-md-9 q-pl-md-lg col-xs-12 row relative-position">
+              <div class="row col-12 justify-end desktop-only">
                 <div>
                   <q-btn
                     @click="deleteBtn(i.key)"
@@ -104,20 +104,47 @@
                   />
                 </div>
               </div>
-              <div class="q-pa-md">
-                <span class="text-h6">{{i.situationEng}}</span>
+
+              <div class="q-pa-md-md q-py-sm col-12">
+                <span class="text-body1">{{i.situationEng}}</span>
               </div>
-              <div class="q-pa-md">
-                <span class="text-h6">{{i.situationThai}}</span>
+              <div class="col-12">
+                <q-separator></q-separator>
+              </div>
+              <div class="q-pa-md-md q-py-sm col-12">
+                <span class="text-body1">{{i.situationThai}}</span>
+              </div>
+
+              <div class="row justify-end mobile-only col-12 q-pt-sm">
+                <div>
+                  <q-btn
+                    @click="deleteBtn(i.key)"
+                    size="md"
+                    color="secondary"
+                    round
+                    icon="fas fa-trash-alt"
+                    class="text-body1 text-white"
+                  />
+                </div>
+                <div class="q-pl-md">
+                  <q-btn
+                    @click="editBtn(i.key)"
+                    size="md"
+                    color="secondary"
+                    round
+                    icon="fas fa-edit"
+                    class="text-body1 text-white"
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          </q-card>
         </div>
 
         <!-- เซิร์ฟเวอร์ -->
         <div v-show="tabShow == 'server'" class="q-pa-md">
           <div class="q-pb-md row">
-            <div class="col-md-6 col-xs-12">
+            <div class="col-md-6 col-xs-10">
               <q-select
                 outlined
                 v-model="positionIDServer"
@@ -129,7 +156,7 @@
               />
             </div>
 
-            <div class="col-md-6 col-xs-12 self-center" align="right">
+            <div class="col-md-6 col-xs-2 self-center" align="right">
               <q-btn
                 @click="addBtn()"
                 disable
@@ -141,17 +168,17 @@
               />
             </div>
           </div>
-          <div
-            class="row q-pa-md"
+          <q-card
+            class="row q-pa-md q-my-md relative-position"
             style="border: 1px solid #E0E0E0"
             v-for="(i , index) in dialogListServer"
             :key="index"
           >
-            <div class="col-md-3" style="width: 370px:">
-              <video :src="i.url" width="370px" controls></video>
+            <div class="col-md-3" style="max-width: 370px; width: 100%">
+              <video :src="i.url" style="max-width: 370px; width: 100%" controls></video>
             </div>
-            <div class="col-md-9 q-pl-lg">
-              <div class="row justify-end">
+            <div class="col-md-9 q-pl-md-lg col-xs-12 row relative-position">
+              <div class="row col-12 justify-end desktop-only">
                 <div>
                   <q-btn
                     disable
@@ -184,13 +211,38 @@
                 </div>
               </div>
               <div class="q-pa-md">
-                <span class="text-h6">{{i.situationEng}}</span>
+                <span class="text-body1">{{i.situationEng}}</span>
+              </div>
+              <div class="col-12">
+                <q-separator></q-separator>
               </div>
               <div class="q-pa-md">
-                <span class="text-h6">{{i.situationThai}}</span>
+                <span class="text-body1">{{i.situationThai}}</span>
+              </div>
+              <div class="row justify-end mobile-only col-12 q-pt-sm">
+                <div>
+                  <q-btn
+                    disable
+                    size="md"
+                    color="grey-7"
+                    round
+                    icon="fas fa-trash-alt"
+                    class="text-body1 text-white"
+                  />
+                </div>
+                <div class="q-pl-md">
+                  <q-btn
+                    disable
+                    size="md"
+                    color="grey-7"
+                    round
+                    icon="fas fa-edit"
+                    class="text-body1 text-white"
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          </q-card>
         </div>
       </div>
     </div>
@@ -302,6 +354,7 @@ export default {
                         .set(data4.data())
                         .then(() => {
                           this.checkSyncData();
+                          this.loadPositionServer();
                           this.loadingHide();
                         });
                     });
@@ -311,7 +364,8 @@ export default {
         });
     },
     // ลบข้อมูล VDO ทั้งหมด
-    deleteBtn(key) {
+    async deleteBtn(key) {
+      let microtime = await this.loadTime();
       this.$q
         .dialog({
           title: "ยืนยัน",
@@ -326,6 +380,12 @@ export default {
             .doc("draft")
             .collection("data")
             .doc(key);
+
+          db.collection("Dialog")
+            .doc("draft")
+            .set({
+              saveDraft: microtime
+            });
 
           dbx
             .collection("sentence")
@@ -350,6 +410,8 @@ export default {
                   dbx.delete().then(() => {
                     this.notifyRed("ลบข้อมูลเรียบร้อย");
                     this.loadDialog();
+                    console.log("amm");
+                    this.isSync = false;
                     this.loadingHide();
                   });
                 });
@@ -463,11 +525,13 @@ export default {
     checkSyncData() {
       let saveDraft = "";
       let saveServer = "";
+      // console.log("test");
       db.collection("Dialog")
         .doc("draft")
         .get()
         .then(doc => {
           saveDraft = doc.data().saveDraft;
+          console.log("draft" + saveDraft);
           db.collection("Dialog")
             .doc("server")
             .get()
@@ -475,7 +539,10 @@ export default {
               saveServer = doc.data().saveServer;
               // เมื่อค่า ดราฟ มีค่าเวลาเซิฟมากกว่า จะสามารถซิงค์ข้อมูลได้
               if (saveDraft <= saveServer) {
+                console.log("server" + saveServer);
                 // เมื่อค่าเวลาน้อยกว่าหรือเท่ากับจะไม่สามารถซิงค์ข้อมูลได้
+                this.isSync = false;
+              } else {
                 this.isSync = true;
               }
             });

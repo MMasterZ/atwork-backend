@@ -200,11 +200,10 @@
               <!-- หน้าแก้ไข -->
               <div>
                 <q-dialog v-model="isSpeakerEditMode" persistent>
-                  <q-card style="min-width: 400px">
+                  <q-card style="max-width: 400px; width:100%">
                     <q-card-section>
-                      <div class="text-h6">แก้ไขผู้สนทนา</div>
+                      <div class="text-h6" align="center">แก้ไขผู้สนทนา</div>
                     </q-card-section>
-
                     <q-card-section>
                       <q-input
                         outlined
@@ -221,9 +220,21 @@
                       />
                     </q-card-section>
 
-                    <q-card-actions align="right" class="text-primary">
-                      <q-btn flat label="ยกเลิก" v-close-popup />
-                      <q-btn flat label="บันทึก" v-close-popup @click="saveSpeakBtn()" />
+                    <q-card-actions align="center" class="text-primary">
+                      <q-btn
+                        style="width:120px;"
+                        class="q-mr-sm text-black"
+                        label="ยกเลิก"
+                        v-close-popup
+                        @click="cancelEditSpeakerBtn()"
+                      />
+                      <q-btn
+                        style="width:120px;"
+                        class="bg-secondary text-white q-ml-sm"
+                        label="บันทึก"
+                        v-close-popup
+                        @click="saveSpeakBtn()"
+                      />
                     </q-card-actions>
                   </q-card>
                 </q-dialog>
@@ -234,7 +245,7 @@
           <!-- บทสนทนา -->
           <q-tab-panel name="dialog">
             <div class="row">
-              <div class="q-pr-md-sm col-md-4 col-xs-12">
+              <div class="q-pr-md-sm q-py-xs-sm col-md-4 col-xs-12" style="height:70px">
                 <q-input
                   outlined
                   v-model="dialog.orderId"
@@ -243,7 +254,7 @@
                   :error="isErrorHasOrder"
                 />
               </div>
-              <div class="q-pr-md-sm col-md-4 col-xs-12">
+              <div class="q-pr-md-sm q-py-xs-sm col-md-4 col-xs-12">
                 <q-select
                   outlined
                   v-model="dialog.speakerKey"
@@ -253,56 +264,57 @@
                   label="ผู้สนทนา"
                 />
               </div>
+              <div class="q-py-xs-sm col-md-4 col-xs-12">
+                <div class="col-md-4 col-xs-12">
+                  <div style="height: 57px;  border: 1px solid #bdbdbd" class="rounded-borders">
+                    <div v-if="!isFile" class="q-my-sm">
+                      <table>
+                        <tr>
+                          <td style="width: 50px;">
+                            <div class="q-pt-xs q-pl-sm text-body1 text-grey-7 q-pr-md">เสียง</div>
+                          </td>
+                          <td>
+                            <q-input
+                              borderless
+                              :type=" 'file'"
+                              @input="value => {file= value}"
+                              style="height:30px;"
+                              class="q-pt-lg"
+                              accept=".mp3"
+                              ref="fileInput"
+                            ></q-input>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
 
-              <div class="col-md-4 col-xs-12">
-                <div style="height: 57px;  border: 1px solid #bdbdbd" class="rounded-borders">
-                  <div v-if="!isFile" class="q-my-sm">
-                    <table>
-                      <tr>
-                        <td style="width: 50px;">
-                          <div class="q-pt-xs q-pl-sm text-body1 text-grey-7 q-pr-md">เสียง</div>
-                        </td>
-                        <td>
-                          <q-input
-                            borderless
-                            :type=" 'file'"
-                            @input="value => {file= value}"
-                            style="height:30px;"
-                            class="q-pt-lg"
-                            accept=".mp3"
-                            ref="fileInput"
-                          ></q-input>
-                        </td>
-                      </tr>
-                    </table>
-                  </div>
-
-                  <div v-if="isFile">
-                    <div class="row justify-between">
-                      <div class="q-my-xs q-pt-sm text-secondary">
-                        <div class="text-body1 q-pt-xs q-px-sm">
-                          <span class="text-grey-7">เสียง</span>
-                          <q-icon class="q-px-md" name="fas  fa-play" />
-                          <u @click="playsound(dialog.url)" class="cursor-pointer">ฟังเสียงคำศัพท์</u>
+                    <div v-if="isFile">
+                      <div class="row justify-between">
+                        <div class="q-my-xs q-pt-sm text-secondary">
+                          <div class="text-body1 q-pt-xs q-px-sm">
+                            <span class="text-grey-7">เสียง</span>
+                            <q-icon class="q-px-md" name="fas  fa-play" />
+                            <u @click="playsound(dialog.url)" class="cursor-pointer">ฟังเสียงคำศัพท์</u>
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        <q-btn
-                          class="q-my-sm text-body1 text-blue-grey-10"
-                          flat
-                          @click="deleteSoundBtn()"
-                          round
-                          push
-                          icon="fas fa-trash-alt"
-                          size="md"
-                        />
+                        <div>
+                          <q-btn
+                            class="q-my-sm text-body1 text-blue-grey-10"
+                            flat
+                            @click="deleteSoundBtn()"
+                            round
+                            push
+                            icon="fas fa-trash-alt"
+                            size="md"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div class="q-py-md col-md-12 col-xs-12">
+              <div class="q-py-md q-py-xs-sm col-md-12 col-xs-12" style="height:70px">
                 <q-input
                   outlined
                   v-model="dialog.sentenceEng"
@@ -310,7 +322,7 @@
                   :error="isErrorHasSentenceEng"
                 />
               </div>
-              <div class="col-md-12 col-xs-12">
+              <div class="q-py-xs-sm col-md-12 col-xs-12" style="height:70px">
                 <q-input
                   outlined
                   v-model="dialog.sentenceThai"
@@ -329,7 +341,7 @@
 
               <!-- start table -->
               <div class="row relative-position" style="width:100%">
-                <div style="width: 100%">
+                <div style="width: 100%" class="desktop-only">
                   <div
                     class="q-my-md row text-subtitle1"
                     style="border: 1px solid #BDBDBD; "
@@ -368,7 +380,7 @@
                         <span class="q-px-md">{{i.speakerThai}}</span>
                       </div>
                     </div>
-                    <div class="row items-center" style="width: calc(100% - 440px);">
+                    <div class="row items-center" style="width: calc(100% - 380px);">
                       <div class="col-12 q-py-sm">
                         <span class="q-px-md">{{i.sentenceEng}}</span>
                       </div>
@@ -377,16 +389,7 @@
                         <span class="q-px-md">{{i.sentenceThai}}</span>
                       </div>
                     </div>
-                    <div class="text-center row justify-center items-center" style="width: 60px;">
-                      <q-btn
-                        round
-                        flat
-                        size="md"
-                        class="text-white bg-secondary text-body1"
-                        icon="fas fa-trash-alt"
-                        @click="deleteDialog(i.sentencekey)"
-                      />
-                    </div>
+
                     <div class="text-center row justify-center items-center" style="width: 60px;">
                       <q-btn
                         round
@@ -399,15 +402,59 @@
                     </div>
                   </div>
                 </div>
+                <div class="mobile-only">
+                  <q-card
+                    v-for="(m,indexm) in sentenceData "
+                    :key="indexm"
+                    class="q-my-md"
+                    @click="editDialog(m.sentencekey)"
+                  >
+                    <div class="bg-blue-grey-10 text-white row q-pa-sm">
+                      <div class style="width: 50px">{{m.orderId}}</div>
+                      <div
+                        class
+                        style="width: calc(100% - 100px)"
+                      >{{m.speakerEng}} - {{m.speakerThai}}</div>
+                      <div class style="width: 40px">
+                        <q-btn
+                          :disable="m.url==''"
+                          @click="playsound(m.url)"
+                          round
+                          flat
+                          style="width:40px; height:40px"
+                          push
+                          icon="fas fa-volume-up"
+                          class="text-body1 col-3"
+                          :class="{'text-white': m.url, 'text-grey-2': !m.url}"
+                        />
+                      </div>
+                    </div>
+                    <div class="row q-pa-md">
+                      <div class="col-12">{{m.sentenceEng}}</div>
+                      <hr class="col-12" style="border-top: 1px dashed" />
+                      <div class="col-12">{{m.sentenceThai}}</div>
+                    </div>
+                  </q-card>
+                </div>
               </div>
               <!-- end table -->
 
               <!-- แสดงไดอล็อคแก้ไขข้อมูล -->
               <div>
                 <q-dialog v-model="editDialogMode" persistent>
-                  <q-card style="min-width: 380px">
-                    <q-card-section>
-                      <div class="text-h6">แก้ไขบทสนทนา</div>
+                  <q-card style="max-width: 400px; width:100%">
+                    <q-card-section class="relative-position">
+                      <div class="text-h6" align="center">แก้ไขบทสนทนา</div>
+                      <div class="absolute-right q-pa-sm">
+                        <q-btn
+                          round
+                          flat
+                          size="md"
+                          class="text-white bg-secondary text-body1"
+                          icon="fas fa-trash-alt"
+                          @click="deleteDialog(sentencekey)"
+                        />
+                      </div>
                     </q-card-section>
                     <q-card-section>
                       <q-input
@@ -459,7 +506,7 @@
                             <div class="row justify-between">
                               <div class="q-my-xs q-pt-sm text-secondary">
                                 <div class="text-body1 q-pt-xs q-px-sm">
-                                  <span class="text-grey-7">เสียง</span>
+                                  <!-- <span class="text-grey-7"></span> -->
                                   <q-icon class="q-px-md" name="fas  fa-play" />
                                   <u
                                     @click="playsound(dialog.url)"
@@ -502,10 +549,10 @@
                       />
                     </q-card-section>
 
-                    <q-card-actions align="right" class="text-primary">
+                    <q-card-actions align="center" class="text-primary">
                       <q-btn
                         style="width:120px;"
-                        class="q-mr-sm"
+                        class="q-mr-sm text-black"
                         label="ยกเลิก"
                         @click="cancelEditDialogBtn()"
                         v-close-popup
@@ -608,6 +655,7 @@ export default {
       isSentenceMode: true, // ตัวเปิดแถบ บทสนทนา - true เปิดได้ / false ปิด
       isSentenceEditMode: false,
       optionsSpeaker: [],
+      sentenceKey: "",
       dialog: {
         orderId: "",
         speakerKey: "",
@@ -937,6 +985,10 @@ export default {
         });
     },
 
+    cancelEditSpeakerBtn() {
+      this.speaker = {};
+    },
+
     //****************** Start Zone บทสนทนา ******************/
 
     /****** โหลดข้อมูลบทสนทนาเพื่อแสดงในตาราง ******/
@@ -1006,60 +1058,48 @@ export default {
         this.isErrorHasSentenceThai = false;
       }
 
-      // this.$refs.dialogOrder.validate(); // ช่องเลขลำดับ
-      // this.$refs.sentenceEng.validate(); // ช่องประโยคสนทนาภาษาอังกฤษ
-      // this.$refs.sentenceThai.validate(); // ช่องประโยคสนทนาภาษาไทย
-
-      // if (
-      //   this.$refs.dialogOrder.hasError ||
-      //   this.$refs.sentenceEng.hasError ||
-      //   this.$refs.sentenceThai.hasError
-      // ) {
-      //   this.notifyRed("กรุณากรอกข้อมูลให้ครบถ้วน");
-      //   return;
-      // }
-
       if (this.isSentenceEditMode) {
+        // เข้าแก้ไขข้อมูล
         this.loadingShow();
         this.db.dialogData
           .doc(this.dockey)
           .collection("sentence")
-          .doc()
+          .doc(this.sentenceKey)
           .set(this.dialog)
           .then(doc => {
-            console.log("edit");
-            // //save sound file
-            // if (this.file != "") {
-            //   st.child("audios/dialog/" + doc.id + ".mp3")
-            //     .put(this.file[0])
-            //     .then(res => {
-            //       st.child("audios/dialog/" + doc.id + ".mp3")
-            //         .getDownloadURL()
-            //         .then(res => {
-            //           this.dataDb
-            //             .collection("sentence")
-            //             .doc(doc.id)
-            //             .update({
-            //               url: res
-            //             })
-            //             .then(() => {
-            //               this.$router.push("/landing/" + this.dockey + "/4");
-            //             });
-            //         });
-            //     });
-            // } else {
-            //   this.db.dialogData
-            //     .doc(this.dockey)
-            //     .collection("sentence")
-            //     .doc(doc.id)
-            //     .update({
-            //       url: ""
-            //     });
-            // }
+            //save sound file
+            if (this.file != "") {
+              st.child("audios/dialog/" + this.sentenceKey + ".mp3")
+                .put(this.file[0])
+                .then(res => {
+                  st.child("audios/dialog/" + this.sentenceKey + ".mp3")
+                    .getDownloadURL()
+                    .then(res => {
+                      this.dataDb
+                        .collection("sentence")
+                        .doc(this.sentenceKey)
+                        .update({
+                          url: res
+                        })
+                        .then(() => {
+                          this.$router.push("/landing/" + this.dockey + "/4");
+                        });
+                    });
+                });
+            } else {
+              this.db.dialogData
+                .doc(this.dockey)
+                .collection("sentence")
+                .doc(this.sentenceKey)
+                .update({
+                  url: ""
+                });
+            }
           });
 
         this.loadingHide();
       } else {
+        // เพิ่มข้อมูลใหม่
         this.loadingShow();
         this.db.dialogData
           .doc(this.dockey)
@@ -1081,7 +1121,7 @@ export default {
                           url: res
                         })
                         .then(() => {
-                          this.$router.push("/landing/" + this.dockey + "/4");
+                          this.loadDialog();
                         });
                     });
                 });
@@ -1126,6 +1166,7 @@ export default {
         .doc(key)
         .get()
         .then(data => {
+          this.sentenceKey = key;
           this.dialog = data.data();
           if (this.dialog.url.length) {
             this.isFile = true;
@@ -1166,7 +1207,7 @@ export default {
           persistent: true
         })
         .onOk(() => {
-          // this.isFile = false;
+          this.isFile = false;
         });
     },
 
