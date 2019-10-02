@@ -187,17 +187,38 @@ export default {
             saveDraft: microtime
           })
           .then(() => {
-            if (this.isEditMode) {
-              // กรณี่ edit mode
-              let key = this.$route.params.key;
+            if (this.$route.name == "vocabularyedit") {
               this.db.vocabData
-                .doc(key)
-                .update(this.general)
-                .then(() => {
-                  this.$q.loading.hide();
-                  this.loadingHide();
-                  this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-                  this.$router.push("/vocabulary");
+                .doc(this.$route.params.key)
+                .set(this.general)
+                .then(doc => {
+                  //นำไฟล์เสียงเข้าสู่ระบบ
+                  if (this.file != "") {
+                    st.child("audios/vocab/" + this.$route.params.key + ".mp3")
+                      .put(this.file[0])
+                      .then(() => {
+                        st.child(
+                          "audios/vocab/" + this.$route.params.key + ".mp3"
+                        )
+                          .getDownloadURL()
+                          .then(res => {
+                            this.db.vocabData
+                              .doc(this.$route.params.key)
+                              .update({
+                                url: res
+                              })
+                              .then(() => {
+                                this.loadingHide();
+                                this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+                                this.$router.push("/vocabulary");
+                              });
+                          });
+                      });
+                  } else {
+                    this.loadingHide();
+                    this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+                    this.$router.push("/vocabulary");
+                  }
                 });
             } else {
               this.$router.push("/vocabulary");
@@ -223,10 +244,13 @@ export default {
                         });
                     });
                 } else {
+                  this.loadingHide();
+                  this.db.vocabData.doc(doc.id).update({
+                    url: ""
+                  });
+                  this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+                  this.$router.push("/vocabulary");
                 }
-                this.loadingHide();
-                this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-                this.$router.push("/vocabulary");
               });
             }
           });
