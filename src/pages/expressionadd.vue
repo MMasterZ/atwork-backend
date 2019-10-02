@@ -359,9 +359,6 @@ export default {
                 });
             } else {
               this.loadingHide();
-              this.db.expressionData.doc(this.$route.params.key).update({
-                url: ""
-              });
               this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
               _this.$router.push("/expression");
             }
