@@ -26,9 +26,9 @@
           <q-input
             ref="order"
             :rules="[ val => !!val ]"
-            v-model.number="obj.orderid"
+            v-model="obj.orderid"
             label="รหัสลำดับ"
-            type="number"
+            mask="######"
             outlined
           ></q-input>
         </div>
@@ -217,22 +217,15 @@ export default {
     // โหลดเสียง หน้าแก้ไข
     async loadedit() {
       this.loadingShow();
-      try {
-        let doc = await st
-          .child("audios/" + this.$route.params.key + ".mp3")
-          .getDownloadURL();
-        this.url = new Audio(doc);
-        this.isFile = true;
-      } catch (err) {
-        this.isFile = false;
-      }
-
       //check audio exists
       this.db.expressionData
         .doc(this.$route.params.key)
         .get()
         .then(doc => {
           this.obj = doc.data();
+          if (this.obj.url != "") {
+            this.isFile = true;
+          }
           this.loadPosition();
 
           // this.loadSituation()
@@ -307,11 +300,11 @@ export default {
           this.db.expression.set({ saveDraft: microtime });
           this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
           if (_this.file != "") {
-            st.child("audios/" + doc.id + ".mp3")
+            st.child("audios/expression/" + doc.id + ".mp3")
               .put(this.file[0])
               .then(() => {
                 this.$q.loading.hide();
-                st.child("audios/" + doc.id + ".mp3")
+                st.child("audios/expression/" + doc.id + ".mp3")
                   .getDownloadURL()
                   .then(res => {
                     this.db.expressionData.doc(doc.id).update({
@@ -322,7 +315,6 @@ export default {
               });
           } else {
             this.loadingHide();
-            _this.$q.loading.hide();
             this.db.expressionData.doc(doc.id).update({
               url: ""
             });
@@ -338,12 +330,14 @@ export default {
           .set(this.obj)
           .then(() => {
             if (_this.file != "") {
-              st.child("audios/" + this.$route.params.key + ".mp3")
+              st.child("audios/expression/" + this.$route.params.key + ".mp3")
                 .put(this.file[0])
                 .then(() => {
                   this.$q.loading.hide();
                   this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-                  st.child("audios/" + this.$route.params.key + ".mp3")
+                  st.child(
+                    "audios/expression/" + this.$route.params.key + ".mp3"
+                  )
                     .getDownloadURL()
                     .then(res => {
                       this.db.expressionData
@@ -359,8 +353,14 @@ export default {
                 });
             } else {
               this.loadingHide();
-              this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-              _this.$router.push("/expression");
+              if (_this.isFile == false) {
+                console.log("55");
+                this.db.expressionData.doc(this.$route.params.key).update({
+                  url: ""
+                });
+                this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+                _this.$router.push("/expression");
+              }
             }
           });
       }
@@ -372,10 +372,10 @@ export default {
       this.editMode = true;
       this.loadedit();
     } else {
+      this.$refs.order.focus();
       this.editMode = false;
       this.loadPosition();
     }
-    this.$refs.order.focus();
   }
 };
 </script>

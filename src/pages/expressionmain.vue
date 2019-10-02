@@ -245,10 +245,9 @@ export default {
               doc.forEach(async element => {
                 try {
                   let loadUrl = await st
-                    .child("audios/" + element.id + ".mp3")
+                    .child("audios/expression/" + element.id + ".mp3")
                     .getDownloadURL();
                   let dataKey = {
-                    url: new Audio(loadUrl),
                     key: element.id
                   };
                   let final = {

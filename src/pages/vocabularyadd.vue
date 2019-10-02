@@ -216,8 +216,14 @@ export default {
                       });
                   } else {
                     this.loadingHide();
-                    this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-                    this.$router.push("/vocabulary");
+                    if (this.isFile == false) {
+                      this.db.vocabData.doc(this.$route.params.key).update({
+                        url: ""
+                      });
+
+                      this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+                      this.$router.push("/vocabulary");
+                    }
                   }
                 });
             } else {
