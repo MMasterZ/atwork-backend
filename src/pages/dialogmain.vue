@@ -61,18 +61,84 @@
                 class="text-body1 text-white"
               />
             </div>
-          </div>
-          <q-card
-            class="row q-pa-md q-my-md relative-position"
-            style="border: 1px solid #E0E0E0"
-            v-for="(i , index) in dialogList"
-            :key="index"
-          >
-            <div class="col-md-3" style="max-width: 370px; width: 100%">
+
+            <div
+              class="row q-pa-md col-lg-4 col-md-6 col-sm-12 relative-position"
+              v-for="(i , index) in dialogList"
+              :key="index"
+            >
+              <div
+                class="row relative-position rounded-borders shadow-2"
+                style="width:100%; border: 1px solid #E0E0E0"
+              >
+                <div class="col-12 q-pa-sm" align="center">
+                  <video :src="i.url" style="max-width: 370px; width: 100%; " controls></video>
+                </div>
+
+                <div class="col-12 q-pa-sm">
+                  <div class="q-pa-md-md q-py-sm">
+                    <span class="text-body1">{{i.situationEng}}</span>
+                  </div>
+                  <div>
+                    <q-separator></q-separator>
+                  </div>
+                  <div class="q-pa-md-md q-py-sm">
+                    <span class="text-body1">{{i.situationThai}}</span>
+                  </div>
+                </div>
+
+                <div class="col-12 q-pa-sm row justify-end">
+                  <div>
+                    <q-btn
+                      @click="deleteBtn(i.key)"
+                      size="md"
+                      color="secondary"
+                      round
+                      icon="fas fa-trash-alt"
+                      class="text-body1 text-white"
+                    />
+                  </div>
+                  <div class="q-pl-md">
+                    <q-btn
+                      @click="editBtn(i.key)"
+                      size="md"
+                      color="secondary"
+                      round
+                      icon="fas fa-edit"
+                      class="text-body1 text-white"
+                    />
+                  </div>
+                  <div class="q-pl-md desktop-only">
+                    <q-btn
+                      @click="printBtn(i.key)"
+                      size="md"
+                      color="secondary"
+                      round
+                      icon="fas fa-print"
+                      class="text-body1 text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+              <!-- <div class="col-md-3 col-xs-12" align="center">
               <video :src="i.url" style="max-width: 370px; width: 100%" controls></video>
-            </div>
-            <div class="col-md-9 q-pl-md-lg col-xs-12 row relative-position">
-              <div class="row col-12 justify-end desktop-only">
+              </div>-->
+              <!-- <div class="col-md-9 col-xs-12 q-pl-md-lg row relative-position">
+              
+              <div class="col-md-9 col-sm-12">
+                <div class="desktop-only" style="height: 40px"></div>
+                <div class="q-pa-md-md q-py-sm">
+                  <span class="text-body1">{{i.situationEng}}</span>
+                </div>
+                <div>
+                  <q-separator></q-separator>
+                </div>
+                <div class="q-pa-md-md q-py-sm">
+                  <span class="text-body1">{{i.situationThai}}</span>
+                </div>
+              </div>
+              
+              <div class="row col-3 justify-end desktop-only">
                 <div>
                   <q-btn
                     @click="deleteBtn(i.key)"
@@ -105,16 +171,7 @@
                 </div>
               </div>
 
-              <div class="q-pa-md-md q-py-sm col-12">
-                <span class="text-body1">{{i.situationEng}}</span>
-              </div>
-              <div class="col-12">
-                <q-separator></q-separator>
-              </div>
-              <div class="q-pa-md-md q-py-sm col-12">
-                <span class="text-body1">{{i.situationThai}}</span>
-              </div>
-
+              
               <div class="row justify-end mobile-only col-12 q-pt-sm">
                 <div>
                   <q-btn
@@ -137,8 +194,9 @@
                   />
                 </div>
               </div>
+              </div>-->
             </div>
-          </q-card>
+          </div>
         </div>
 
         <!-- เซิร์ฟเวอร์ -->
@@ -174,11 +232,25 @@
             v-for="(i , index) in dialogListServer"
             :key="index"
           >
-            <div class="col-md-3" style="max-width: 370px; width: 100%">
+            <div class="col-md-3 col-xs-12" align="center">
               <video :src="i.url" style="max-width: 370px; width: 100%" controls></video>
             </div>
-            <div class="col-md-9 q-pl-md-lg col-xs-12 row relative-position">
-              <div class="row col-12 justify-end desktop-only">
+
+            <div class="col-md-9 col-xs-12 q-pl-md-lg row relative-position">
+              <div>
+                <div class="q-pa-md">
+                  <span class="text-body1">{{i.situationEng}}</span>
+                </div>
+                <div class="col-12">
+                  <q-separator></q-separator>
+                </div>
+                <div class="q-pa-md">
+                  <span class="text-body1">{{i.situationThai}}</span>
+                </div>
+              </div>
+
+              <!-- ปุ่ม 3 ปุ่ม ในเดสท็อป -->
+              <div class="row justify-end desktop-only">
                 <div>
                   <q-btn
                     disable
@@ -210,15 +282,8 @@
                   />
                 </div>
               </div>
-              <div class="q-pa-md">
-                <span class="text-body1">{{i.situationEng}}</span>
-              </div>
-              <div class="col-12">
-                <q-separator></q-separator>
-              </div>
-              <div class="q-pa-md">
-                <span class="text-body1">{{i.situationThai}}</span>
-              </div>
+
+              <!-- ปุ่ม 2 ปุ่ม ในโมบาย -->
               <div class="row justify-end mobile-only col-12 q-pt-sm">
                 <div>
                   <q-btn
@@ -557,4 +622,7 @@ export default {
 };
 </script>
 <style scoped >
+.bulebox {
+  height: 50px;
+}
 </style>
