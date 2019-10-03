@@ -260,29 +260,37 @@ export default {
             persistent: true
           })
           .onOk(() => {
-            db.collection("Situation")
-              .doc(key)
-              .delete()
-              .then(() => {
-                db.collection("CustomerAccounts")
-                  .where("departmentKey", "==", key)
-                  .get()
-                  .then(doc => {
-                    doc.forEach(element => {
-                      db.collection("CustomerAccounts")
-                        .doc(element.id)
-                        .update({
-                          departmentKey: this.departmentsArr[0].departmentsKey
-                        });
-                    });
-                  });
-                this.situationArry.splice(index, 1);
-                this.notifyGreen("ลบข้อมูลเรียบร้อย");
-              });
+            this.loadingShow();
+
+            // เช็คการใช้งานของประโยคถ้ามีการใช้จะลบไม่ได้
+
+            // db.collection("Situation")
+            //   .doc(key)
+            //   .delete()
+            //   .then(() => {
+            //     db.collection("CustomerAccounts")
+            //       .where("departmentKey", "==", key)
+            //       .get()
+            //       .then(doc => {
+            //         doc.forEach(element => {
+            //           db.collection("CustomerAccounts")
+            //             .doc(element.id)
+            //             .update({
+            //               departmentKey: this.departmentsArr[0].departmentsKey
+            //             });
+            //         });
+            //       });
+            //     this.situationArry.splice(index, 1);
+            //     this.notifyGreen("ลบข้อมูลเรียบร้อย");
+            //   });
+          })
+          .onCancel(() => {
+            this.editSituation(index, key);
           });
       } else {
         this.situationArry.splice(index, 1);
       }
+
       // this.$q
       //   .dialog({
       //     class: "no-margin ",
@@ -496,34 +504,41 @@ export default {
     // กดเพื่อให้ขึ้น ไดอะล็อค เพื่อแก้ไขและลบ
     editSituation(index, key) {
       this.isSituationEdit = true;
-      if ((this.$route.params.name = "positionedit")) {
+
+      if (this.$route.name == "positionedit") {
+        this.iGetKey = key;
+        this.iGetIndex = index;
         db.collection("Situation")
           .doc(key)
           .get()
           .then(doc => {
             this.situation.name = doc.data().name;
             this.situation.positionKey = this.$route.params.key;
-            this.iGetKey = key;
-            this.iGetIndex = index;
           });
       } else {
-        this.situation.name = "a";
+        this.iGetIndex = index;
+        this.situation.name = this.situationArry[index].name;
       }
     },
     // ทำการยกเลิกการแก้ไขข้อมูล
     cancelSituation() {
-      this.situation = {};
+      this.situation.name = "";
     },
     // ทำการเปลี่ยนข้อมูลใน situation
     saveSituation(key) {
-      db.collection("Situation")
-        .doc(key)
-        .set(this.situation)
-        .then(doc => {
-          this.situation.name = "";
-          this.situation.positionKey = "";
-          this.loadData();
-        });
+      if (this.$route.name == "positionedit") {
+        db.collection("Situation")
+          .doc(key)
+          .set(this.situation)
+          .then(doc => {
+            this.situation.name = "";
+            this.situation.positionKey = "";
+            this.loadData();
+          });
+      } else {
+        this.situationArry[this.iGetIndex].name = this.situation.name;
+        this.situation.name = "";
+      }
     }
   },
   mounted() {
