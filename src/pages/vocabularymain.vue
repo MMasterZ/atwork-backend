@@ -82,11 +82,17 @@
         </div>
       </div>
       <div class="q-pb-lg flex flex-center">
-        <q-pagination v-model="page" :max="6" color="blue-grey-10" :direction-links="true" />
+        <q-pagination
+          v-model="page"
+          @click="showPage()"
+          :max="vocabularyList.length"
+          color="blue-grey-10"
+          :direction-links="true"
+        />
       </div>
       <div class="row">
         <div
-          v-for="(item,index ) in   vocabularyList "
+          v-for="(item,index ) in   vocabularyList[page -1] "
           :key="index"
           class="col-md-4 col-lg-3 col-sm-6 col-xs-12 q-mb-md-md q-mb-sm-sm q-px-md-md q-py-xs q-px-sm-md"
         >
@@ -113,7 +119,12 @@
       </div>
 
       <div class="q-pt-lg q-pb-md flex flex-center">
-        <q-pagination v-model="page" :max="6" color="blue-grey-10" :direction-links="true" />
+        <q-pagination
+          v-model="page"
+          :max="vocabularyList.length"
+          color="blue-grey-10"
+          :direction-links="true"
+        />
       </div>
     </div>
   </q-page>
@@ -138,7 +149,6 @@ export default {
     };
   },
   methods: {
-    // โหลดข้อมูล
     loadData() {
       db.collection("Vocabulary")
         .doc("draft")
@@ -147,6 +157,7 @@ export default {
         .get()
         .then(doc => {
           this.vocabularyList = [];
+          let testArry = [];
           if (doc.size > 0) {
             doc.forEach(element => {
               let dataKey = {
@@ -156,12 +167,21 @@ export default {
                 ...dataKey,
                 ...element.data()
               };
-
-              this.vocabularyList.push(final);
+              testArry.push(final);
             });
-            this.vocabularyList.sort((a, b) => {
+            testArry.sort((a, b) => {
               return a.vocab > b.vocab ? 1 : -1;
             });
+            let newNumber = Math.ceil(testArry.length / 4);
+            let startNumber = 0;
+            let lastNumber = 4;
+            let newData = [];
+            for (let i = 0; i < newNumber; i++) {
+              newData = testArry.slice(startNumber, lastNumber);
+              startNumber += 4;
+              lastNumber += 4;
+              this.vocabularyList.push(newData);
+            }
             this.loadingHide();
           } else {
           }
