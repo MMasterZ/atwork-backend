@@ -221,7 +221,14 @@ export default {
         .doc(this.$route.params.key)
         .get()
         .then(doc => {
-          this.obj = doc.data();
+          // เปลี่ยน number เแป็น string
+          let textString = {
+            orderid: doc.data().orderid.toString()
+          };
+          this.obj = {
+            ...doc.data(),
+            ...textString
+          };
           if (this.obj.url != "") {
             this.isFile = true;
           }
