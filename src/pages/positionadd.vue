@@ -65,9 +65,7 @@
               <div class="q-py-xs">
                 <q-chip
                   clickable
-                  @click="deletelog(index,item.situationKey)"
-                  @remove="deletelog(index,item.situationKey)"
-                  removable
+                  @click="editSituation(index, item.situationKey)"
                   v-for="(item,index ) in  situationArry "
                   :key="index"
                   class="q-ma-sm"
@@ -77,6 +75,48 @@
               </div>
             </div>
           </div>
+
+          <!-- ส่วนแก้ไข -->
+          <q-dialog v-model="isSituationEdit" persistent>
+            <q-card style="min-width: 400px">
+              <q-card-section align="center" class="relative-position">
+                <div class="text-body1">แก้ไขสถานการณ์</div>
+                <div class="absolute-right q-pa-sm">
+                  <q-btn
+                    v-close-popup
+                    round
+                    flat
+                    size="md"
+                    class="text-white bg-secondary text-body1"
+                    icon="fas fa-trash-alt"
+                    @click="deletelog(iGetIndex ,iGetKey)"
+                  />
+                </div>
+              </q-card-section>
+
+              <q-card-section>
+                <q-input dense v-model="situation.name" autofocus @keyup.enter="prompt = false" />
+              </q-card-section>
+
+              <q-card-actions align="center" class="text-primary">
+                <q-btn
+                  style="width:120px"
+                  text-color="black"
+                  color="grey-2"
+                  label="ยกเลิก"
+                  v-close-popup
+                  @click="cancelSituation()"
+                />
+                <q-btn
+                  style="width:120px"
+                  color="secondary"
+                  label="บันทึก"
+                  v-close-popup
+                  @click="saveSituation(iGetKey)"
+                />
+              </q-card-actions>
+            </q-card>
+          </q-dialog>
 
           <div class="col-12 q-pt-md row justify-center">
             <q-btn
@@ -115,7 +155,10 @@ export default {
       isHasSituation: false,
       position: { orderid: "", name: "", status: true },
       situation: { positionKey: "", name: "" },
-      situationArry: []
+      situationArry: [],
+      isSituationEdit: false,
+      iGetKey: "",
+      iGetIndex: ""
     };
   },
   methods: {
@@ -240,6 +283,24 @@ export default {
       } else {
         this.situationArry.splice(index, 1);
       }
+      // this.$q
+      //   .dialog({
+      //     class: "no-margin ",
+      //     style: "padding: 0px;",
+      //     title:
+      //       "<div class='row'> <div class='col-11'> ลบข้อมูล </div><div class='col-1' align='right'></div> </div> ",
+      //     html: true,
+      //     message: "<div class='text-body1'>  ยืนยันการลบข้อมูล </div>",
+      //     ok: "ยืนยัน",
+      //     cancel: "ยกเลิก",
+      //     persistent: true
+      //   })
+      //   .onOk(() => {
+      //     console.log("ok");
+      //   })
+      //   .onCancel(() => {
+      //     this.editSituation(index, key);
+      //   });
     },
     // การเพื่มข้อมูลของสถานการณ์
     addSituation() {
@@ -328,11 +389,6 @@ export default {
         this.notifyRed("กรุณากรอกสถานการณ์");
         return;
       } else {
-        // else if (this.position.orderid || this.position.name) {
-        //   if (this.position.orderid == "") {
-        //   } else if (this.position.name == "") {
-        //   }
-        // }
         if (this.$route.name == "positionedit") {
           this.isSeveBtn = false;
           if (
@@ -436,6 +492,38 @@ export default {
     },
     backBtn() {
       this.$router.push("/position");
+    },
+    // กดเพื่อให้ขึ้น ไดอะล็อค เพื่อแก้ไขและลบ
+    editSituation(index, key) {
+      this.isSituationEdit = true;
+      if ((this.$route.params.name = "positionedit")) {
+        db.collection("Situation")
+          .doc(key)
+          .get()
+          .then(doc => {
+            this.situation.name = doc.data().name;
+            this.situation.positionKey = this.$route.params.key;
+            this.iGetKey = key;
+            this.iGetIndex = index;
+          });
+      } else {
+        this.situation.name = "a";
+      }
+    },
+    // ทำการยกเลิกการแก้ไขข้อมูล
+    cancelSituation() {
+      this.situation = {};
+    },
+    // ทำการเปลี่ยนข้อมูลใน situation
+    saveSituation(key) {
+      db.collection("Situation")
+        .doc(key)
+        .set(this.situation)
+        .then(doc => {
+          this.situation.name = "";
+          this.situation.positionKey = "";
+          this.loadData();
+        });
     }
   },
   mounted() {

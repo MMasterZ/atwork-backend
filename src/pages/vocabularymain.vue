@@ -94,7 +94,7 @@
         <div
           v-for="(item,index ) in   vocabularyList[page -1] "
           :key="index"
-          class="col-md-4 col-lg-3 col-sm-6 col-xs-12 q-mb-md-md q-mb-sm-sm q-px-md-md q-py-xs q-px-sm-md"
+          class="col-md-4 col-lg-3 col-sm-6 col-xs-12 q-mb-md-md q-mb-sm-sm q-px-xs-sm q-px-md-md q-py-xs q-px-sm-md"
         >
           <q-toolbar class="pointer no-padding q-py-xs col-md-3 bg-grey-2 shadow-5 rounded-borders">
             <q-btn
@@ -172,14 +172,15 @@ export default {
             testArry.sort((a, b) => {
               return a.vocab > b.vocab ? 1 : -1;
             });
-            let newNumber = Math.ceil(testArry.length / 4);
+            let setNumber = 40;
+            let newNumber = Math.ceil(testArry.length / setNumber);
             let startNumber = 0;
-            let lastNumber = 4;
+            let lastNumber = setNumber;
             let newData = [];
             for (let i = 0; i < newNumber; i++) {
               newData = testArry.slice(startNumber, lastNumber);
-              startNumber += 4;
-              lastNumber += 4;
+              startNumber += setNumber;
+              lastNumber += setNumber;
               this.vocabularyList.push(newData);
             }
             this.loadingHide();
