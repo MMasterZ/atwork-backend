@@ -206,11 +206,10 @@ export default {
             });
             this.obj.situationKey = this.situationArry[0].value;
             this.loadingHide();
+          } else {
+            this.obj.situationKey = "-";
+            this.loadingHide();
           }
-          //  else {
-          //   this.obj.situationKey = "-";
-          //   this.loadingHide();
-          // }
         });
     },
 
