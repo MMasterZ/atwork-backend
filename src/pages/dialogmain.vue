@@ -521,7 +521,7 @@ export default {
         .get()
         .then(doc => {
           saveDraft = doc.data().saveDraft;
-          console.log("draft" + saveDraft);
+          // console.log("draft" + saveDraft);
           db.collection("Dialog")
             .doc("server")
             .get()
@@ -529,7 +529,7 @@ export default {
               saveServer = doc.data().saveServer;
               // เมื่อค่า ดราฟ มีค่าเวลาเซิฟมากกว่า จะสามารถซิงค์ข้อมูลได้
               if (saveDraft <= saveServer) {
-                console.log("server" + saveServer);
+                // console.log("server" + saveServer);
                 // เมื่อค่าเวลาน้อยกว่าหรือเท่ากับจะไม่สามารถซิงค์ข้อมูลได้
                 this.isSync = false;
               } else {

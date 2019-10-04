@@ -244,7 +244,7 @@ export default {
           }
         });
     },
-    // การลบสถานการณ์มีการแจ้งเตือน มีมีผู้ใช้งานอยู่ไหม ถ้ามีให้ลบไม่ได้ ถ้าไม่มีให้ลบได้
+    // การลบสถานการณ์มีการแจ้งเตือน มีผู้ใช้งานอยู่ไหม ถ้ามีจะต้องลบไม่ได้ ถ้าไม่มีให้ลบได้เลย
     deletelog(index, key) {
       if (this.$route.name == "positionedit") {
         this.$q
@@ -261,28 +261,30 @@ export default {
           })
           .onOk(() => {
             this.loadingShow();
-
             // เช็คการใช้งานของประโยคถ้ามีการใช้จะลบไม่ได้
-
-            // db.collection("Situation")
-            //   .doc(key)
-            //   .delete()
-            //   .then(() => {
-            //     db.collection("CustomerAccounts")
-            //       .where("departmentKey", "==", key)
-            //       .get()
-            //       .then(doc => {
-            //         doc.forEach(element => {
-            //           db.collection("CustomerAccounts")
-            //             .doc(element.id)
-            //             .update({
-            //               departmentKey: this.departmentsArr[0].departmentsKey
-            //             });
-            //         });
-            //       });
-            //     this.situationArry.splice(index, 1);
-            //     this.notifyGreen("ลบข้อมูลเรียบร้อย");
-            //   });
+            db.collection("Expression")
+              .doc("draft")
+              .collection("data")
+              .where("situationKey", "==", key)
+              .get()
+              .then(doc => {
+                console.log(doc.size);
+                if (doc.size > 0) {
+                  this.situation.name = "";
+                  this.notifyRed("ถูกใช้งานอยู่ ไม่สามารถลบได้");
+                  this.loadingHide();
+                } else {
+                  db.collection("Situation")
+                    .doc(key)
+                    .delete()
+                    .then(() => {
+                      this.situation.name = "";
+                      this.notifyGreen("ลบข้อมูลเรียบร้อย");
+                      this.loadData();
+                      this.loadingHide();
+                    });
+                }
+              });
           })
           .onCancel(() => {
             this.editSituation(index, key);
@@ -290,25 +292,6 @@ export default {
       } else {
         this.situationArry.splice(index, 1);
       }
-
-      // this.$q
-      //   .dialog({
-      //     class: "no-margin ",
-      //     style: "padding: 0px;",
-      //     title:
-      //       "<div class='row'> <div class='col-11'> ลบข้อมูล </div><div class='col-1' align='right'></div> </div> ",
-      //     html: true,
-      //     message: "<div class='text-body1'>  ยืนยันการลบข้อมูล </div>",
-      //     ok: "ยืนยัน",
-      //     cancel: "ยกเลิก",
-      //     persistent: true
-      //   })
-      //   .onOk(() => {
-      //     console.log("ok");
-      //   })
-      //   .onCancel(() => {
-      //     this.editSituation(index, key);
-      //   });
     },
     // การเพื่มข้อมูลของสถานการณ์
     addSituation() {
@@ -324,6 +307,7 @@ export default {
             .then(doc => {
               if (doc.size > 0) {
                 this.notifyRed("สถานการณ์ช้ำ");
+                this.isSituationSeve = true;
               } else {
                 let theKey = {
                   positionKey: this.$route.params.key,
