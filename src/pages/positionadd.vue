@@ -133,6 +133,7 @@
               style="width:120px"
               color="secondary"
               label="บันทึก"
+              :disable="!isSeveBtn"
             />
             <div icon="fas fa-push"></div>
           </div>
@@ -195,53 +196,90 @@ export default {
             });
         });
     },
-    // ปุ่มลบข้อมูลทั้งหมด หน้าแก้ไข
-    deleteBtn() {
-      if (this.situationArry.length) {
+    // เช็คการว่ามีการใช้งานอยู่หรือไม่
+    async loadDataCheck() {
+      if (this.situationArry.length > 0) {
         this.notifyRed("มีสถานการณ์อยู่ไม่สามารถลบได้");
         return;
       }
-      db.collection("CustomerAccounts")
-        .where("positionKey", "==", this.$route.params.key)
-        .get()
-        .then(doc => {
-          if (doc.size > 0) {
-            this.$q
-              .dialog({
-                class: "no-margin ",
-                style: "padding: 0px;",
-                title:
-                  "<div class='row'> <div class='col-11'> แจ้งเตือน </div><div class='col-1' align='right'></div> </div> ",
-                html: true,
-                message: "<div class='text-body1'>  ยืนยันการลบข้อมูล </div>",
-                ok: "ยืนยัน",
-                cancel: "ยกเลิก",
-                persistent: true
-              })
-              .onOk(() => {
-                this.notifyRed("มีผู้ใช้งานอยู่ไม่สามารลบได้");
-              });
-          } else {
-            this.$q
-              .dialog({
-                class: "no-margin ",
-                style: "padding: 0px;",
-                title:
-                  "<div class='row'> <div class='col-11'> แจ้งเตือน </div><div class='col-1' align='right'></div> </div> ",
-                html: true,
-                message: "<div class='text-body1'>  ยืนยันการลบข้อมูล </div>",
-                ok: "ยืนยัน",
-                cancel: "ยกเลิก",
-                persistent: true
-              })
-              .onOk(() => {
-                db.collection("Position")
-                  .doc(this.$route.params.key)
-                  .delete();
-                this.$router.push("/position");
-                this.notifyGreen("ลบข้อมูลเรียบร้อย");
-              });
-          }
+
+      this.loadingShow();
+      let positionKey = this.$route.params.key;
+
+      let customerCheck = await db
+        .collection("CustomerAccounts")
+        .where("positionKey", "==", positionKey)
+        .get();
+
+      let dialogDraftCheck = await db
+        .collection("Dialog")
+        .doc("draft")
+        .collection("data")
+        .where("positionSelec", "array-contains", positionKey)
+        .get();
+
+      let dialogServerCheck = await db
+        .collection("Dialog")
+        .doc("server")
+        .collection("data")
+        .where("positionSelec", "array-contains", positionKey)
+        .get();
+
+      let vocabDraftCheck = await db
+        .collection("Vocabulary")
+        .doc("draft")
+        .collection("data")
+        .where("positionKey", "==", positionKey)
+        .get();
+
+      let vocabServerCheck = await db
+        .collection("Vocabulary")
+        .doc("server")
+        .collection("data")
+        .where("positionKey", "==", positionKey)
+        .get();
+
+      console.log(
+        customerCheck.size,
+        dialogServerCheck.size,
+        dialogDraftCheck.size,
+        vocabDraftCheck.size,
+        vocabServerCheck.size
+      );
+
+      if (customerCheck.size > 0) {
+        this.notifyRed("มีผู้ใช้งานอยู่ไม่สามารลบได้");
+      } else if (dialogDraftCheck.size > 0 || dialogServerCheck.size > 0) {
+        this.notifyRed("มีบทสนทนาใช้งานอยู่ไม่สามารลบได้");
+      } else if (vocabDraftCheck.size > 0 || vocabServerCheck.size > 0) {
+        this.notifyRed("มีคำศัพท์ใช้งานอยู่ไม่สามารลบได้");
+      } else {
+        db.collection("Position")
+          .doc(positionKey)
+          .delete()
+          .then(() => {
+            this.notifyGreen("ลบข้อมูลเรียบร้อย");
+            this.$router.push("/position");
+          });
+      }
+      this.loadingHide();
+    },
+    // ปุ่มลบข้อมูลทั้งหมด หน้าแก้ไข
+    deleteBtn() {
+      this.$q
+        .dialog({
+          class: "no-margin ",
+          style: "padding: 0px;",
+          title:
+            "<div class='row'> <div class='col-11'> แจ้งเตือน </div><div class='col-1' align='right'></div> </div> ",
+          html: true,
+          message: "<div class='text-body1'>  ยืนยันการลบข้อมูล </div>",
+          ok: "ยืนยัน",
+          cancel: "ยกเลิก",
+          persistent: true
+        })
+        .onOk(() => {
+          this.loadDataCheck();
         });
     },
     // การลบสถานการณ์มีการแจ้งเตือน มีผู้ใช้งานอยู่ไหม ถ้ามีจะต้องลบไม่ได้ ถ้าไม่มีให้ลบได้เลย
@@ -268,7 +306,7 @@ export default {
               .where("situationKey", "==", key)
               .get()
               .then(doc => {
-                console.log(doc.size);
+                // console.log(doc.size);
                 if (doc.size > 0) {
                   this.situation.name = "";
                   this.notifyRed("ถูกใช้งานอยู่ ไม่สามารถลบได้");
@@ -380,52 +418,33 @@ export default {
         this.isHasSituation = true;
         this.notifyRed("กรุณากรอกสถานการณ์");
         return;
-      } else {
-        if (this.$route.name == "positionedit") {
-          this.isSeveBtn = false;
-          if (
-            this.textOrderid == this.position.orderid &&
-            this.textName == this.position.name
-          ) {
-            this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-            this.$router.push("/position");
-          } else if (this.position.orderid || this.position.name) {
-            if (this.textOrderid == this.position.orderid) {
-              db.collection("Position")
-                .where("name", "==", this.position.name)
-                .get()
-                .then(doc => {
-                  if (doc.size > 0) {
-                    this.notifyRed("กรุณาตรวจสอบข้อมูลช้ำ");
-                  } else {
-                    db.collection("Position")
-                      .doc(this.$route.params.key)
-                      .set(this.position);
-                    this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-                    this.$router.push("/position");
-                  }
-                });
-            } else if (this.textName == this.position.name) {
-              db.collection("Position")
-                .where("orderid", "==", this.position.orderid)
-                .get()
-                .then(doc => {
-                  if (doc.size > 0) {
-                    this.notifyRed("กรุณาตรวจสอบข้อมูลช้ำ");
-                  } else {
-                    db.collection("Position")
-                      .doc(this.$route.params.key)
-                      .set(this.position);
-                    this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-                    this.isSeveBtn = true;
-                    this.$router.push("/position");
-                  }
-                });
-            }
-          }
-        } else {
-          // การบันทึกเพิ่ม
-          if (this.position.orderid && this.position.name) {
+      }
+
+      if (this.$route.name == "positionedit") {
+        this.isSeveBtn = false;
+        if (
+          this.textOrderid == this.position.orderid &&
+          this.textName == this.position.name
+        ) {
+          this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+          this.$router.push("/position");
+        } else if (this.position.orderid || this.position.name) {
+          if (this.textOrderid == this.position.orderid) {
+            db.collection("Position")
+              .where("name", "==", this.position.name)
+              .get()
+              .then(doc => {
+                if (doc.size > 0) {
+                  this.notifyRed("กรุณาตรวจสอบข้อมูลช้ำ");
+                } else {
+                  db.collection("Position")
+                    .doc(this.$route.params.key)
+                    .set(this.position);
+                  this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+                  this.$router.push("/position");
+                }
+              });
+          } else if (this.textName == this.position.name) {
             db.collection("Position")
               .where("orderid", "==", this.position.orderid)
               .get()
@@ -433,58 +452,79 @@ export default {
                 if (doc.size > 0) {
                   this.notifyRed("กรุณาตรวจสอบข้อมูลช้ำ");
                 } else {
-                  if (
-                    this.situation.name == "" &&
-                    this.situationArry.length < 1
-                  ) {
-                    this.isHasSituation = true;
-                    this.notifyRed("กรุณากรอกสถานการณ์");
-                  } else {
-                    this.isSeveBtn = false;
-
-                    if (this.position.name.length > 0) {
-                      db.collection("Position")
-                        .where("name", "==", this.position.name)
-                        .get()
-                        .then(doc => {
-                          if (doc.size > 0) {
-                            this.isSeveBtn = true;
-                            this.notifyRed("กรุณาตรวจสอบข้อมูลช้ำ");
-                            setTimeout(() => {}, 1500);
-                          } else {
-                            if (this.situationArry.length > 0) {
-                              db.collection("Position")
-                                .add(this.position)
-                                .then(doc => {
-                                  for (
-                                    let xx = 0;
-                                    xx < this.situationArry.length;
-                                    xx++
-                                  ) {
-                                    this.situationArry[xx].positionKey = doc.id;
-                                    db.collection("Situation").add(
-                                      this.situationArry[xx]
-                                    );
-                                  }
-                                  this.$router.push("/position");
-                                  this.isHasSituation = false;
-                                  this.isSeveBtn = true;
-                                  this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-                                });
-                            }
-                          }
-                        });
-                    }
-                  }
+                  db.collection("Position")
+                    .doc(this.$route.params.key)
+                    .set(this.position);
+                  this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+                  this.isSeveBtn = true;
+                  this.$router.push("/position");
                 }
               });
           }
         }
+      } else {
+        // การบันทึกเพิ่ม
+        db.collection("Position")
+          .where("orderid", "==", this.position.orderid)
+          .get()
+          .then(doc => {
+            // เช็ค orderid ซ้ำ
+            if (doc.size > 0) {
+              this.notifyRed("กรุณาตรวจสอบลำดับช้ำ");
+            } else {
+              if (this.situation.name == "" && this.situationArry.length < 1) {
+                // เช็ค ชื่อสถานการณ์ มีการกรอกข้อมูลไม
+                this.isHasSituation = true;
+                this.notifyRed("กรุณากรอกสถานการณ์");
+              } else {
+                this.isSeveBtn = false;
+
+                if (this.position.name.length > 0) {
+                  db.collection("Position")
+                    .where("name", "==", this.position.name)
+                    .get()
+                    .then(doc => {
+                      if (doc.size > 0) {
+                        this.isSeveBtn = true;
+                        this.notifyRed("กรุณาตรวจสอบชื่อตำแหน่งช้ำ");
+                        setTimeout(() => {}, 1500);
+                      } else {
+                        if (this.situationArry.length > 0) {
+                          db.collection("Position")
+                            .add(this.position)
+                            .then(doc => {
+                              for (
+                                let xx = 0;
+                                xx < this.situationArry.length;
+                                xx++
+                              ) {
+                                this.situationArry[xx].positionKey = doc.id;
+                                db.collection("Situation").add(
+                                  this.situationArry[xx]
+                                );
+                              }
+                              this.$router.push("/position");
+                              this.isHasSituation = false;
+                              this.isSeveBtn = true;
+                              this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+                            });
+                        } else {
+                          this.isSeveBtn = true;
+                          this.notifyRed("กรุณากรอกสถานการณ์");
+                        }
+                      }
+                    });
+                }
+              }
+            }
+          });
       }
     },
+
     backBtn() {
       this.$router.push("/position");
     },
+
     // กดเพื่อให้ขึ้น ไดอะล็อค เพื่อแก้ไขและลบ
     editSituation(index, key) {
       this.isSituationEdit = true;

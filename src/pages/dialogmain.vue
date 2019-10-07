@@ -360,7 +360,8 @@ export default {
         .dialog({
           title: "ยืนยัน",
           message: "ยืนยันการลบ",
-          cancel: true,
+          ok: "ยืนยัน",
+          cancel: "ยกเลิก",
           persistent: true
         })
         .onOk(() => {
