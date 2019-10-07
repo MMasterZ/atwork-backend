@@ -1,5 +1,6 @@
 {
-  "hosting": {
+  "hosting": [{
+    "target": "atwork",
     "public": "dist/pwa",
     "ignore": [
       "firebase.json",
@@ -10,5 +11,5 @@
       "source": "**",
       "destination": "/index.html"
     }]
-  }
+  }]
 }

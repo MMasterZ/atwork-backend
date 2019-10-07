@@ -107,7 +107,7 @@ module.exports = function (ctx) {
       // workboxPluginMode: 'InjectManifest',
       // workboxOptions: {}, // only for NON InjectManifest
       manifest: {
-        // name: '',
+        name: '@work-backend',
         // short_name: '',
         // description: 'A Quasar Framework app',
         display: "standalone",
