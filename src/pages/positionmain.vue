@@ -109,11 +109,11 @@ export default {
     },
     // ปุ่มเพิ่มข้อมูล
     addBtn() {
-      this.$router.push("/position/add");
+      this.$router.push("/lesson/add");
     },
     // การแก้ไขข้อมูล
     editBtn(key) {
-      this.$router.push("/position/edit/" + key);
+      this.$router.push("/lesson/edit/" + key);
     },
     // การโหลดตำแหน่งออกมาโชว์
     loadPosition() {

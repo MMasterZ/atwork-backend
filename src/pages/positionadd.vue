@@ -419,15 +419,14 @@ export default {
         this.notifyRed("กรุณากรอกสถานการณ์");
         return;
       }
-
+      this.isSeveBtn = false;
       if (this.$route.name == "positionedit") {
-        this.isSeveBtn = false;
         if (
           this.textOrderid == this.position.orderid &&
           this.textName == this.position.name
         ) {
           this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-          this.$router.push("/position");
+          this.$router.push("/lesson");
         } else if (this.position.orderid || this.position.name) {
           if (this.textOrderid == this.position.orderid) {
             db.collection("Position")
@@ -441,7 +440,7 @@ export default {
                     .doc(this.$route.params.key)
                     .set(this.position);
                   this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-                  this.$router.push("/position");
+                  this.$router.push("/lesson");
                 }
               });
           } else if (this.textName == this.position.name) {
@@ -457,7 +456,7 @@ export default {
                     .set(this.position);
                   this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
                   this.isSeveBtn = true;
-                  this.$router.push("/position");
+                  this.$router.push("/lesson");
                 }
               });
           }
@@ -503,7 +502,7 @@ export default {
                                   this.situationArry[xx]
                                 );
                               }
-                              this.$router.push("/position");
+                              this.$router.push("/lesson");
                               this.isHasSituation = false;
                               this.isSeveBtn = true;
                               this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
@@ -522,7 +521,7 @@ export default {
     },
 
     backBtn() {
-      this.$router.push("/position");
+      this.$router.push("/lesson");
     },
 
     // กดเพื่อให้ขึ้น ไดอะล็อค เพื่อแก้ไขและลบ
