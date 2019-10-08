@@ -61,7 +61,7 @@
                   <div class="text-body1 q-pt-xs q-px-sm">
                     <span class="text-grey-7">เสียง</span>
                     <q-icon class="q-px-md" name="fas  fa-play" />
-                    <u @click="playsound(url)" class="cursor-pointer">ฟังเสียงคำศัพท์</u>
+                    <u @click="playsound(obj.url)" class="cursor-pointer">ฟังเสียงคำศัพท์</u>
                   </div>
                 </div>
                 <div>
@@ -238,7 +238,7 @@ export default {
             ...textString
           };
           this.textedit = this.ordernumber.key;
-          console.log(this.textedit);
+
           if (this.obj.url != "") {
             this.isFile = true;
           }
@@ -287,13 +287,12 @@ export default {
     playsound(url) {
       let audio = new Audio(url);
       if (this.currentURL != "") {
-        console.log("22");
         this.currentURL.pause();
       }
       setTimeout(() => {
         audio.play();
       }, 1000);
-      console.log("555");
+
       this.currentURL = audio;
     },
     // บันทึกข้อมูล มีหน้าเพิ่ม และ แก้ไข
@@ -355,7 +354,6 @@ export default {
       // บันทึกหน้าแก้ไข
       else {
         if (this.textedit != this.obj.orderid) {
-          console.log(0);
           this.db.expressionData
             .where("orderid", "==", this.obj.orderid)
             .get()
@@ -363,7 +361,6 @@ export default {
               if (doc.size > 0) {
                 this.notifyRed("กรุณาตรวจสอบข้อมูลช้ำ");
               } else {
-                console.log(2);
                 this.isSeveBtn = false;
                 this.loadingShow();
                 this.db.expression.set({ saveDraft: microtime });
@@ -412,7 +409,6 @@ export default {
               }
             });
         } else if (this.textedit == this.obj.orderid) {
-          console.log(1);
           this.isSeveBtn = false;
           this.loadingShow();
           this.db.expression.set({ saveDraft: microtime });
@@ -441,7 +437,6 @@ export default {
                     // this.$router.push("/expression");
                   });
               } else {
-                console.log(33);
                 this.loadingHide();
                 if (_this.isFile == false) {
                   this.db.expressionData.doc(this.$route.params.key).update({
