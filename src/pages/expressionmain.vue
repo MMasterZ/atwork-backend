@@ -316,14 +316,14 @@ export default {
         });
     },
     // เล่นเสียง
-    playsound(audio) {
+    playsound(url) {
+      let audio = new Audio(url);
       if (this.currentURL != "") {
         this.currentURL.pause();
       }
       setTimeout(() => {
         audio.play();
       }, 1000);
-
       this.currentURL = audio;
     },
     // ปุ่มเพิ่มข้อมูล
