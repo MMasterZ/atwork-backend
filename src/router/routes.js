@@ -1,5 +1,4 @@
-const routes = [
-  {
+const routes = [{
     path: "/",
     component: () => import("pages/login.vue"),
     name: "login"
@@ -18,8 +17,7 @@ const routes = [
   {
     path: "/",
     component: () => import("layouts/MyLayout.vue"),
-    children: [
-      {
+    children: [{
         path: "/welcome",
         component: () => import("pages/Index.vue"),
         name: "welcome"
@@ -82,17 +80,17 @@ const routes = [
 
       // pages position
       {
-        path: "/position",
+        path: "/lesson",
         component: () => import("pages/positionmain.vue"),
         name: "positionmain"
       },
       {
-        path: "/position/add",
+        path: "/lesson/add",
         component: () => import("pages/positionadd.vue"),
         name: "positionadd"
       },
       {
-        path: "/position/edit/:key",
+        path: "/lesson/edit/:key",
         component: () => import("pages/positionadd.vue"),
         name: "positionedit"
       },

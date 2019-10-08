@@ -84,11 +84,11 @@
         <!-- เมนูตำแหน่ง -->
         <q-toolbar-title class="text-h6" v-if="this.$route.name == 'positionmain'">บทเรียน</q-toolbar-title>
         <q-toolbar-title class="text-h6" v-if="this.$route.name == 'positionadd'">
-          <router-link class="text-white text-weight-light" to="/position">บทเรียน</router-link>&nbsp;>
+          <router-link class="text-white text-weight-light" to="/lesson">บทเรียน</router-link>&nbsp;>
           เพิ่มบทเรียน
         </q-toolbar-title>
         <q-toolbar-title class="text-h6" v-if="this.$route.name == 'positionedit'">
-          <router-link class="text-white text-weight-light" to="/position">บทเรียน</router-link>&nbsp;>
+          <router-link class="text-white text-weight-light" to="/lesson">บทเรียน</router-link>&nbsp;>
           แก้ไขบทเรียน
         </q-toolbar-title>
 
@@ -103,7 +103,7 @@
         style="height: calc(100% - 125px); margin-top: 125px; "
       >
         <q-list padding>
-          <router-link to="/position" class="my-text-menu">
+          <router-link to="/lesson" class="my-text-menu">
             <q-item
               class="my-padding"
               :class="{'text-light-blue-3': this.$route.name == 'positionmain' || this.$route.name == 'positionadd' || this.$route.name == 'positionedit'} "
