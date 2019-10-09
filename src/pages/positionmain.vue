@@ -84,25 +84,52 @@ export default {
   },
   methods: {
     // ปุมการเปิดแผนก
-    powerOn(key) {
+    async powerOn(key) {
       this.mode = false;
+      this.loadingShow();
+
+      let customerAccData = await db.collection("CustomerAccounts").get();
+
+      for (const customerData of customerAccData.docs) {
+        db.collection("CustomerAccounts")
+          .doc(customerData.id)
+          .collection("PositionSelected")
+          .doc(key)
+          .update({
+            status: false
+          });
+      }
 
       db.collection("Position")
         .doc(key)
         .update({
           status: false
         });
+      this.loadingHide();
       this.notifyRed("ปิดการใช้งาน");
     },
     // ปุ่มการปิดแผนก
-    powerOff(key) {
+    async powerOff(key) {
       this.mode = true;
+      this.loadingShow();
+      let customerAccData = await db.collection("CustomerAccounts").get();
+
+      for (const customerData of customerAccData.docs) {
+        db.collection("CustomerAccounts")
+          .doc(customerData.id)
+          .collection("PositionSelected")
+          .doc(key)
+          .update({
+            status: true
+          });
+      }
 
       db.collection("Position")
         .doc(key)
         .update({
           status: true
         });
+      this.loadingHide();
       this.notifyGreen("เปิดการใช้งาน");
 
       this.mode = true;
