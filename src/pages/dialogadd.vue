@@ -52,7 +52,7 @@
 
               <div class="row col-12">
                 <div class="col-12">
-                  <span>ตำแหน่ง</span>
+                  <span>บทเรียน</span>
                 </div>
                 <div class="col-md-3 col-sm-6 col-xs-12">
                   <q-checkbox
@@ -699,7 +699,7 @@ export default {
       }
 
       if (this.situation.positionSelec.length == 0) {
-        this.notifyRed("กรุณาเลือกตำแหน่งอย่างน้อย 1 ตำแหน่ง");
+        this.notifyRed("กรุณาเลือกบทเรียนอย่างน้อย 1 บทเรียน");
         return;
       }
 

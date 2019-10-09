@@ -38,7 +38,7 @@
               :rules="[ val => !!val ]"
               outlined
               v-model="position.name"
-              label="ตำแหน่ง"
+              label="บทเรียน"
             />
           </div>
           <div style="width: 100%" class="box q-mx-sm rounded-borders">
@@ -239,13 +239,13 @@ export default {
         .where("positionKey", "==", positionKey)
         .get();
 
-      console.log(
-        customerCheck.size,
-        dialogServerCheck.size,
-        dialogDraftCheck.size,
-        vocabDraftCheck.size,
-        vocabServerCheck.size
-      );
+      // console.log(
+      //   customerCheck.size,
+      //   dialogServerCheck.size,
+      //   dialogDraftCheck.size,
+      //   vocabDraftCheck.size,
+      //   vocabServerCheck.size
+      // );
 
       if (customerCheck.size > 0) {
         this.notifyRed("มีผู้ใช้งานอยู่ไม่สามารลบได้");
@@ -485,7 +485,7 @@ export default {
                     .then(doc => {
                       if (doc.size > 0) {
                         this.isSeveBtn = true;
-                        this.notifyRed("กรุณาตรวจสอบชื่อตำแหน่งช้ำ");
+                        this.notifyRed("กรุณาตรวจสอบชื่อบทเรียนช้ำ");
                         setTimeout(() => {}, 1500);
                       } else {
                         if (this.situationArry.length > 0) {

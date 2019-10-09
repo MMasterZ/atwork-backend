@@ -24,7 +24,7 @@
       <div class="row q-pa-sm">
         <div class="q-pt-md-md q-px-md-sm q-pt-xs-md col-md-6 col-xs-12">
           <q-select
-            label="ตำแหน่ง"
+            label="บทเรียน"
             outlined
             :options="generalPosition"
             v-model="general.positionKey"
@@ -188,10 +188,14 @@ export default {
           })
           .then(() => {
             if (this.$route.name == "vocabularyedit") {
+              // แก้ไขข้อมูลเวลาเซฟ
               this.db.vocabData
                 .doc(this.$route.params.key)
                 .set(this.general)
                 .then(doc => {
+                  db.collection("VocabularyEdit")
+                    .doc(this.$route.params.key)
+                    .set(this.general);
                   //นำไฟล์เสียงเข้าสู่ระบบ
                   if (this.file != "") {
                     st.child("audios/vocab/" + this.$route.params.key + ".mp3")
@@ -227,8 +231,12 @@ export default {
                   }
                 });
             } else {
+              // เพิ่มข้อมูลใหม่
               this.$router.push("/vocabulary");
               this.db.vocabData.add(this.general).then(doc => {
+                db.collection("VocabularyAdd")
+                  .doc(doc.id)
+                  .set(this.general);
                 //นำไฟล์เสียงเข้าสู่ระบบ
                 if (this.file != "") {
                   st.child("audios/vocab/" + doc.id + ".mp3")
@@ -284,11 +292,19 @@ export default {
           this.db.vocab.set({
             saveDraft: microtime
           });
+
           this.db.vocabData
             .doc(key)
             .delete()
             .then(() => {
-              st.child("audios/vocab/" + key + ".mp3").delete();
+              db.collection("VocabularyDelete")
+                .doc(key)
+                .set(this.general);
+
+              if (this.general.url != "") {
+                st.child("audios/vocab/" + key + ".mp3").delete();
+              }
+
               this.loadingHide();
               this.notifyGreen("ลบข้อมูลเรียบร้อย");
               this.$router.push("/vocabulary");
