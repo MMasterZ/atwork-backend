@@ -86,7 +86,7 @@
             emit-value
             map-options
             :options="positionArry"
-            label="ตำแหน่ง"
+            label="บทเรียน"
             @input="loadSituation()"
           />
         </div>
@@ -211,6 +211,7 @@ export default {
             if (this.$route.name == "expressionadd") {
               this.obj.situationKey = this.situationArry[0].value;
             } else {
+              this.obj.situationKey = this.situationArry[0].value;
             }
             this.loadingHide();
           } else {
@@ -242,7 +243,9 @@ export default {
           };
           this.textedit = this.ordernumber.key;
 
-          if (this.obj.url != "") {
+          if (this.obj.url == "") {
+            this.isFile = false;
+          } else {
             this.isFile = true;
           }
           this.loadPosition();
@@ -424,12 +427,43 @@ export default {
                 this.loadingHide();
                 this.$router.push("/expression");
               } else {
-                st.child("audios/expression/" + this.$route.params.key + ".mp3")
-                  .delete()
-                  .then(() => {
-                    this.loadingHide();
-                    this.$router.push("/expression");
+                if (_this.file != "") {
+                  st.child(
+                    "audios/expression/" + this.$route.params.key + ".mp3"
+                  )
+                    .put(this.file[0])
+                    .then(() => {
+                      this.$q.loading.hide();
+                      this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+                      st.child(
+                        "audios/expression/" + this.$route.params.key + ".mp3"
+                      )
+                        .getDownloadURL()
+                        .then(res => {
+                          this.db.expressionData
+                            .doc(this.$route.params.key)
+                            .update({
+                              url: res
+                            });
+                          this.$router.push("/expression");
+                        });
+                      // this.$router.push("/expression");
+                    });
+                } else {
+                  this.db.expressionData.doc(this.$route.params.key).update({
+                    url: ""
                   });
+                  st.child(
+                    "audios/expression/" + this.$route.params.key + ".mp3"
+                  )
+                    .delete()
+                    .then(() => {
+                      this.isSeveBtn = true;
+                      this.loadingHide();
+                      this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+                      _this.$router.push("/expression");
+                    });
+                }
               }
               // if (_this.file != "") {
               //   st.child("audios/expression/" + this.$route.params.key + ".mp3")

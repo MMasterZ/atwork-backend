@@ -38,7 +38,7 @@
         <div class="row q-pa-md">
           <div class="col-md-6 col-sm-9 col-xs-9">
             <q-select
-              label="ตำแหน่ง"
+              label="บทเรียน"
               outlined
               @input="loadData()"
               :options="generalPosition"
@@ -150,7 +150,6 @@ import { st } from "../router/index.js";
 export default {
   data() {
     return {
-      show: "1",
       expressionList: [],
       tab: "draft",
       obj: {
