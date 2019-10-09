@@ -72,6 +72,7 @@
             />
           </div>
         </div>
+
         <div v-for="(item,index ) in    expressionList " :key="index" class="q-px-md q-pb-md">
           <table
             style="border: 1px solid grey;width:100%; border-collapse: collapse; "
@@ -84,7 +85,7 @@
                     :disable="item.url==''"
                     @click="playsound(item.url)"
                     flat
-                    style="width:50px; height:50px"
+                    style="width:80px; height:80px"
                     push
                     icon="fas fa-volume-up"
                     class="text-body1 text-grey-2"
@@ -98,6 +99,9 @@
                 <span class="q-px-xs">{{item.sentenceEnglish}}</span>
                 <br />
                 <span class="q-px-xs">{{item.sentenceThai}}</span>
+                <br />
+                <hr />
+                <span class="q-px-xs">{{item.situationName}}</span>
               </td>
               <td
                 @click="editBtn(item.key)"
@@ -146,6 +150,7 @@ import { st } from "../router/index.js";
 export default {
   data() {
     return {
+      show: "1",
       expressionList: [],
       tab: "draft",
       obj: {
@@ -162,6 +167,7 @@ export default {
     printMe() {
       alert("ขนมปังคือฟาร์มเฮาส์ แต่สำหรับเราคือฟาร์มรัก");
     },
+
     async syncNow() {
       //update server time
       let api = "https://api.winner-english.com/data/api/gettime.php";
@@ -243,40 +249,29 @@ export default {
             this.expressionList = [];
             if (doc.size > 0) {
               doc.forEach(async element => {
-                try {
-                  let loadUrl = await st
-                    .child("audios/expression/" + element.id + ".mp3")
-                    .getDownloadURL();
-                  let dataKey = {
-                    key: element.id
-                  };
-                  let final = {
-                    ...element.data(),
-                    ...dataKey
-                  };
-                  this.expressionList.push(final);
-                  this.expressionList.sort((a, b) => {
-                    return a.orderid - b.orderid;
+                db.collection("Situation")
+                  .doc(element.data().situationKey)
+                  .get()
+                  .then(doc => {
+                    let dataKey = {
+                      key: element.id,
+                      situationName: doc.data().name
+                    };
+                    let final = {
+                      ...element.data(),
+                      ...dataKey
+                    };
+
+                    this.expressionList.push(final);
+                    this.expressionList.sort((a, b) => {
+                      return a.orderid - b.orderid;
+                    });
+                    this.loadingHide();
                   });
-                  this.loadingHide();
-                } catch (err) {
-                  let dataKey = {
-                    url: "",
-                    key: element.id
-                  };
-                  let final = {
-                    ...dataKey,
-                    ...element.data()
-                  };
-                  this.expressionList.push(final);
-                  this.expressionList.sort((a, b) => {
-                    return a.orderid - b.orderid;
-                  });
-                  this.loadingHide();
-                  //*************Disable warning file not found **********/
-                  console.clear();
-                  //*************Disable warning file not found **********/
-                }
+
+                //*************Disable warning file not found **********/
+                // console.clear();
+                //*************Disable warning file not found **********/
               });
             } else {
               this.loadingHide();
