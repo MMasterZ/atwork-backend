@@ -44,7 +44,7 @@
               <q-select
                 @input="loadData()"
                 outlined
-                label="ตำแหน่ง"
+                label="บทเรียน"
                 v-model="obj.positions"
                 :options="positionOptions"
               />
@@ -125,7 +125,7 @@
               <q-select
                 @input="loadDataServer()"
                 outlined
-                label="ตำแหน่ง"
+                label="บทเรียน"
                 v-model="objServer.positions"
                 :options="positionOptions"
               />
@@ -210,6 +210,7 @@
 
 <script>
 import { db } from "../router/index.js";
+import { async } from "q";
 export default {
   data() {
     return {
@@ -227,7 +228,8 @@ export default {
         positions: ""
       },
       positionOptionsServer: [],
-      pageServer: 1
+      pageServer: 1,
+      customerList: []
     };
   },
   methods: {
@@ -362,60 +364,144 @@ export default {
     //******************** ซิงค์ข้อมูลเซิฟเวอร์   *****************/
     async syncBtn() {
       //update server time
+      console.clear();
       this.loadingShow();
 
       let microtime = await this.loadTime();
       // console.log(microtime);
-      db.collection("Vocabulary")
-        .doc("server")
-        .set({
-          saveServer: microtime
-        });
-      //delete all record from server
-      db.collection("Vocabulary")
+      // db.collection("Vocabulary")
+      //   .doc("server")
+      //   .set({
+      //     saveServer: microtime
+      //   });
+      // delete all record from server
+      let deleteDataServer = await db
+        .collection("Vocabulary")
         .doc("server")
         .collection("data")
-        .get()
-        .then(doc => {
-          doc.forEach(data => {
-            db.collection("Vocabulary")
-              .doc("server")
-              .collection("data")
-              .doc(data.id)
-              .delete();
-          });
+        .get();
 
-          // copy all record from draft to server
-          db.collection("Vocabulary")
-            .doc("draft")
-            .collection("data")
-            .get()
-            .then(doc => {
-              doc.forEach(data => {
-                db.collection("Vocabulary")
-                  .doc("server")
-                  .collection("data")
-                  .doc(data.id)
-                  .set(data.data())
-                  .then(() => {
-                    this.loadingHide();
-                    this.checkSyncData();
-                  });
-                console.log(data.id + " id ");
-                console.log(data.data());
-                // หาทางวนไปเซฟที่ ยูเซอแต่ละคน แล้วก็ถ้ามีแล้วต้องไปเซฟซ้ำ
-                // db.collection("CustomerAccounts")
+      deleteDataServer.forEach(data => {
+        db.collection("Vocabulary")
+          .doc("server")
+          .collection("data")
+          .doc(data.id)
+          .delete();
+      });
 
-                //   .get()
-                //   .then(docAccounts => {
-                //     docAccounts.forEach(dataAccount => {
-                //       console.log("amm");
-                //     });
-                //   });
-              });
-            });
-        });
+      // // copy all record from draft to server
+      let draftData = await db
+        .collection("Vocabulary")
+        .doc("draft")
+        .collection("data")
+        .get();
+
+      draftData.forEach(data => {
+        db.collection("Vocabulary")
+          .doc("server")
+          .collection("data")
+          .doc(data.id)
+          .set(data.data());
+      });
+
+      // ก็อปปี้ไปใส่ใน เซิฟเวอร์
+
+      let loadCustomerData = await db.collection("CustomerAccounts").get();
+      let vocabAdd = await db.collection("VocabularyAdd").get();
+      let vocabEdit = await db.collection("VocabularyEdit").get();
+      let vocabDelete = await db.collection("VocabularyDelete").get();
+
+      for (const customerData of loadCustomerData.docs) {
+        let customerVocab = await db
+          .collection("CustomerAccounts")
+          .doc(customerData.id)
+          .collection("Vocabulary")
+          .get();
+
+        console.log(customerVocab.size);
+
+        // เพิ่มคำศัพท์ทั้งหมด
+        // draftData.forEach(element => {
+        //   let newData = { correct: 0, incorrect: 0, ratio: 0 };
+        //   let finalData = { ...element.data(), ...newData };
+        //   db.collection("CustomerAccounts")
+        //     .doc(customerData.id)
+        //     .collection("Vocabulary")
+        //     .doc(element.id)
+        //     .set(finalData);
+        // });
+
+        // เพิ่มคำศัพท์ที่แอดมาใหม่;
+        console.log("----------------- vocabAdd -----------------");
+        for (const element of vocabAdd.docs) {
+          console.log(element.id);
+
+          let newData = { correct: 0, incorrect: 0, ratio: 0 };
+          let finalData = { ...element.data(), ...newData };
+          await db
+            .collection("CustomerAccounts")
+            .doc(customerData.id)
+            .collection("Vocabulary")
+            .doc(element.id)
+            .set(finalData);
+        }
+
+        console.log("----------------- vocabEdit -----------------");
+
+        //แก้ไขคำศัพท์ที่มีข้อมูลอยู่แล้ว
+        for (const element of vocabEdit.docs) {
+          console.log(element.id);
+
+          let finalData = { ...element.data() };
+          await db
+            .collection("CustomerAccounts")
+            .doc(customerData.id)
+            .collection("Vocabulary")
+            .doc(element.id)
+            .update(finalData);
+        }
+
+        console.log("----------------- vocabDelete -----------------");
+
+        // ลบคำศัพท์ที่โดนลบไปแล้ว
+        for (const element of vocabDelete.docs) {
+          console.log(element.id);
+
+          await db
+            .collection("CustomerAccounts")
+            .doc(customerData.id)
+            .collection("Vocabulary")
+            .doc(element.id)
+            .delete();
+        }
+      }
+
+      for (const data of vocabAdd.docs) {
+        await db
+          .collection("VocabularyAdd")
+          .doc(data.id)
+          .delete();
+      }
+
+      for (const data of vocabEdit.docs) {
+        await db
+          .collection("VocabularyEdit")
+          .doc(data.id)
+          .delete();
+      }
+
+      for (const data of vocabDelete.docs) {
+        await db
+          .collection("VocabularyDelete")
+          .doc(data.id)
+          .delete();
+      }
+
+      this.loadingHide();
+      this.checkSyncData();
+      // หาทางวนไปเซฟที่ ยูเซอแต่ละคน แล้วก็ถ้ามีแล้วต้องไปเซฟซ้ำ
     },
+
     // เช็ค การซิงข้อมูลของคำศัพท์
     checkSyncData() {
       let saveDraft = "";

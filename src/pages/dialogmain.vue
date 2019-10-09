@@ -46,7 +46,7 @@
                 v-model="positionID"
                 :options="optionsPosition"
                 @input="loadDialog()"
-                label="ตำแหน่ง"
+                label="บทเรียน"
                 emit-value
                 map-options
               />
@@ -133,7 +133,7 @@
                 v-model="positionIDServer"
                 :options="optionsPositionServer"
                 @input="loadDialogServer()"
-                label="ตำแหน่ง"
+                label="บทเรียน"
                 emit-value
                 map-options
               />
@@ -421,7 +421,7 @@ export default {
     printBtn(key) {
       alert("พักตรงนี้ดีกว่า... เหนื่อยจุงเบย");
     },
-    // โหลดข้อมูล ตำแหน่ง ของฝั่ง draft
+    // โหลดข้อมูล บทเรียน ของฝั่ง draft
     loadPosition() {
       this.loadingShow();
       db.collection("Position")
