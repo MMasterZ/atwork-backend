@@ -15,7 +15,7 @@
             round
             icon="fas fa-cloud-upload-alt"
             class="text-body1 text-white"
-            :disable="tabShow == 'server' || isSync"
+            :disable="tabShow == 'server' || !isSync"
             :class="{'bg-grey-7 ' : tabShow == 'server'}"
           />
         </div>
@@ -150,89 +150,33 @@
                 class="text-body1 text-white"
               />
             </div>
+            <div
+              class="row q-pa-md col-lg-4 col-md-6 col-sm-12 relative-position"
+              v-for="(i , index) in dialogListServer"
+              :key="index"
+            >
+              <div
+                class="row relative-position rounded-borders shadow-2"
+                style="width:100%; border: 1px solid #E0E0E0"
+              >
+                <div class="col-12 q-pa-sm" align="center">
+                  <video :src="i.url" style="max-width: 370px; width: 100%; " controls></video>
+                </div>
+
+                <div class="col-12 q-pa-sm">
+                  <div class="q-pa-md-md q-py-sm">
+                    <span class="text-body1">{{i.situationEng}}</span>
+                  </div>
+                  <div>
+                    <q-separator></q-separator>
+                  </div>
+                  <div class="q-pa-md-md q-py-sm">
+                    <span class="text-body1">{{i.situationThai}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <q-card
-            class="row q-pa-md q-my-md relative-position"
-            style="border: 1px solid #E0E0E0"
-            v-for="(i , index) in dialogListServer"
-            :key="index"
-          >
-            <div class="col-md-3 col-xs-12" align="center">
-              <video :src="i.url" style="max-width: 370px; width: 100%" controls></video>
-            </div>
-
-            <div class="col-md-9 col-xs-12 q-pl-md-lg row relative-position">
-              <div>
-                <div class="q-pa-md">
-                  <span class="text-body1">{{i.situationEng}}</span>
-                </div>
-                <div class="col-12">
-                  <q-separator></q-separator>
-                </div>
-                <div class="q-pa-md">
-                  <span class="text-body1">{{i.situationThai}}</span>
-                </div>
-              </div>
-
-              <!-- ปุ่ม 3 ปุ่ม ในเดสท็อป -->
-              <div class="row justify-end desktop-only">
-                <div>
-                  <q-btn
-                    disable
-                    size="md"
-                    color="grey-7"
-                    round
-                    icon="fas fa-trash-alt"
-                    class="text-body1 text-white"
-                  />
-                </div>
-                <div class="q-pl-md">
-                  <q-btn
-                    disable
-                    size="md"
-                    color="grey-7"
-                    round
-                    icon="fas fa-edit"
-                    class="text-body1 text-white"
-                  />
-                </div>
-                <div class="q-pl-md">
-                  <q-btn
-                    disable
-                    size="md"
-                    color="grey-7"
-                    round
-                    icon="fas fa-print"
-                    class="text-body1 text-white"
-                  />
-                </div>
-              </div>
-
-              <!-- ปุ่ม 2 ปุ่ม ในโมบาย -->
-              <div class="row justify-end mobile-only col-12 q-pt-sm">
-                <div>
-                  <q-btn
-                    disable
-                    size="md"
-                    color="grey-7"
-                    round
-                    icon="fas fa-trash-alt"
-                    class="text-body1 text-white"
-                  />
-                </div>
-                <div class="q-pl-md">
-                  <q-btn
-                    disable
-                    size="md"
-                    color="grey-7"
-                    round
-                    icon="fas fa-edit"
-                    class="text-body1 text-white"
-                  />
-                </div>
-              </div>
-            </div>
-          </q-card>
         </div>
       </div>
     </div>
@@ -343,12 +287,12 @@ export default {
                         .doc(data4.id)
                         .set(data4.data())
                         .then(() => {
-                          this.checkSyncData();
-                          this.loadPositionServer();
                           this.loadingHide();
                         });
                     });
                   });
+                // this.loadPositionServer();
+                this.isSync = false;
               });
           });
         });
@@ -468,6 +412,7 @@ export default {
     },
     // โหลดข้อมูล ตำแหน่ง ของฝั่ง server
     loadPositionServer() {
+      this.optionsPositionServer = [];
       this.loadingShow();
       db.collection("Position")
         .where("status", "==", true)
@@ -479,12 +424,12 @@ export default {
               value: element.id
             };
             this.optionsPositionServer.push(data);
-            this.optionsPositionServer.sort((a, b) => {
-              return a.label > b.label ? 1 : -1;
-            });
-            this.positionIDServer = this.optionsPositionServer[0].value;
-            this.loadingHide();
           });
+          this.optionsPositionServer.sort((a, b) => {
+            return a.label > b.label ? 1 : -1;
+          });
+          this.positionIDServer = this.optionsPositionServer[0].value;
+          this.loadingHide();
           this.loadDialogServer();
         });
     },
@@ -514,8 +459,8 @@ export default {
     },
     // เช็ค การซิงข้อมูลของบทสนทนา
     checkSyncData() {
-      let saveDraft = "";
-      let saveServer = "";
+      let saveDraft = 0;
+      let saveServer = 0;
       // console.log("test");
       db.collection("Dialog")
         .doc("draft")
@@ -528,6 +473,7 @@ export default {
             .get()
             .then(doc => {
               saveServer = doc.data().saveServer;
+              console.log(saveServer, saveDraft);
               // เมื่อค่า ดราฟ มีค่าเวลาเซิฟมากกว่า จะสามารถซิงค์ข้อมูลได้
               if (saveDraft <= saveServer) {
                 // console.log("server" + saveServer);
@@ -536,6 +482,7 @@ export default {
               } else {
                 this.isSync = true;
               }
+              console.log(this.isSync);
             });
         });
     }
