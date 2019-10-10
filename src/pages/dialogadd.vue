@@ -851,6 +851,7 @@ export default {
     /****** บันทึกผู้สนทนา ******/
     saveSpeakBtn() {
       // ช่องชื่อผู้สนทนาภาษาอังกฤษ
+
       if (this.speaker.speakerEng == "") {
         this.isErrorHasSpeakerEng = true;
         this.notifyRed("กรุณากรอกข้อมูลให้ครบถ้วน");
@@ -868,6 +869,7 @@ export default {
       }
 
       this.$q.loading.show();
+      let editMode = this.isSpeakerEditMode;
 
       this.db.dialogData
         .doc(this.dockey)
@@ -877,8 +879,9 @@ export default {
         .then(doc => {
           // เช็คข้อมูลซ้ำก่อนเซฟ
 
-          if (this.isSpeakerEditMode == true) {
+          if (editMode == true) {
             /******  edit mode ******/
+            // console.log("edit");
             this.db.dialogData
               .doc(this.dockey)
               .collection("speaker")
@@ -898,6 +901,7 @@ export default {
               });
           } else {
             /****** add mode ******/
+            // console.log("add");
             this.db.dialogData
               .doc(this.dockey)
               .collection("speaker")
