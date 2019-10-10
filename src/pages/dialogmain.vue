@@ -208,94 +208,145 @@ export default {
   methods: {
     // ซิงค์ข้อมูลบน draft ไปยัง server
     async syncBtn() {
+      let loadCheckDialog = await db
+        .collection("Dialog")
+        .doc("draft")
+        .collection("data")
+        .where("url", "==", "")
+        .get();
+
+      if (loadCheckDialog.size > 0) {
+        this.notifyRed("กรุณาเช็คข้อมูล URL ให้ครบก่อนทำการ Sync ข้อมูล");
+        this.loadingHide();
+        return;
+      }
+
+      this.loadingShow();
+
       //update server time
       let api = "https://api.winner-english.com/data/api/gettime.php";
       let response = await axios.get(api);
       let date = response.data[0].date;
       let microtime = response.data[0].microtime;
 
-      this.loadingShow();
       // delete server
-      await db
+      let serverData = await db
         .collection("Dialog")
         .doc("server")
         .collection("data")
-        .get()
-        .then(doc => {
-          doc.forEach(data => {
-            db.collection("Dialog")
-              .doc("server")
-              .collection("data")
-              .doc(data.id)
-              .delete();
-          });
-        });
+        .get();
+
+      for (const data of serverData.docs) {
+        let serverSentence = await db
+          .collection("Dialog")
+          .doc("server")
+          .collection("data")
+          .doc(data.id)
+          .collection("sentence")
+          .get();
+
+        for (const getSentence of serverSentence.docs) {
+          db.collection("Dialog")
+            .doc("server")
+            .collection("data")
+            .doc(data.id)
+            .collection("sentence")
+            .doc(getSentence.id)
+            .delete();
+        }
+
+        let serverSpeaker = await db
+          .collection("Dialog")
+          .doc("server")
+          .collection("data")
+          .doc(data.id)
+          .collection("speaker")
+          .get();
+
+        for (const getSpeaker of serverSpeaker.docs) {
+          db.collection("Dialog")
+            .doc("server")
+            .collection("data")
+            .doc(data.id)
+            .collection("speaker")
+            .doc(getSpeaker.id)
+            .delete();
+        }
+
+        await db
+          .collection("Dialog")
+          .doc("server")
+          .collection("data")
+          .doc(data.id)
+          .delete();
+      }
+
+      // ซิงค์ข้อมูล draft ไปยัง server
+      let draftData = await db
+        .collection("Dialog")
+        .doc("draft")
+        .collection("data")
+        .get();
+
+      for (const data of draftData.docs) {
+        await db
+          .collection("Dialog")
+          .doc("server")
+          .collection("data")
+          .doc(data.id)
+          .set(data.data());
+
+        //copy sentence
+        let draftSentenceData = await db
+          .collection("Dialog")
+          .doc("draft")
+          .collection("data")
+          .doc(data.id)
+          .collection("sentence")
+          .get();
+
+        for (const data2 of draftSentenceData.docs) {
+          await db
+            .collection("Dialog")
+            .doc("server")
+            .collection("data")
+            .doc(data.id)
+            .collection("sentence")
+            .doc(data2.id)
+            .set(data2.data());
+        }
+
+        //copy speaker
+        let draftSpeaker = await db
+          .collection("Dialog")
+          .doc("draft")
+          .collection("data")
+          .doc(data.id)
+          .collection("speaker")
+          .get();
+
+        for (const data3 of draftSpeaker.docs) {
+          await db
+            .collection("Dialog")
+            .doc("server")
+            .collection("data")
+            .doc(data.id)
+            .collection("speaker")
+            .doc(data3.id)
+            .set(data3.data());
+        }
+      }
 
       // สร้างเวลาตอน ซิงค์ข้อมูล
-      db.collection("Dialog")
+      await db
+        .collection("Dialog")
         .doc("server")
         .set({
           saveServer: microtime
         });
 
-      // ซิงค์ข้อมูล draft ไปยัง server
-      await db
-        .collection("Dialog")
-        .doc("draft")
-        .collection("data")
-        .get()
-        .then(doc2 => {
-          doc2.forEach(data2 => {
-            db.collection("Dialog")
-              .doc("server")
-              .collection("data")
-              .doc(data2.id)
-              .set(data2.data())
-              .then(() => {
-                //copy sentence
-                db.collection("Dialog")
-                  .doc("draft")
-                  .collection("data")
-                  .doc(data2.id)
-                  .collection("sentence")
-                  .get()
-                  .then(doc3 => {
-                    doc3.forEach(data3 => {
-                      db.collection("Dialog")
-                        .doc("server")
-                        .collection("data")
-                        .doc(data2.id)
-                        .collection("sentence")
-                        .doc(data3.id)
-                        .set(data3.data());
-                    });
-                  });
-                //copy speaker
-                db.collection("Dialog")
-                  .doc("draft")
-                  .collection("data")
-                  .doc(data2.id)
-                  .collection("speaker")
-                  .get()
-                  .then(doc4 => {
-                    doc4.forEach(data4 => {
-                      db.collection("Dialog")
-                        .doc("server")
-                        .collection("data")
-                        .doc(data2.id)
-                        .collection("speaker")
-                        .doc(data4.id)
-                        .set(data4.data())
-                        .then(() => {
-                          this.loadingHide();
-                        });
-                    });
-                  });
-                // this.loadPositionServer();
-                this.isSync = false;
-              });
-          });
-        });
+      this.loadingHide();
+      this.isSync = false;
     },
     // ลบข้อมูล VDO ทั้งหมด
     async deleteBtn(key) {
@@ -345,7 +396,7 @@ export default {
                   dbx.delete().then(() => {
                     this.notifyRed("ลบข้อมูลเรียบร้อย");
                     this.loadDialog();
-                    console.log("amm");
+                    this.checkSyncData();
                     this.isSync = false;
                     this.loadingHide();
                   });
@@ -473,7 +524,6 @@ export default {
             .get()
             .then(doc => {
               saveServer = doc.data().saveServer;
-              console.log(saveServer, saveDraft);
               // เมื่อค่า ดราฟ มีค่าเวลาเซิฟมากกว่า จะสามารถซิงค์ข้อมูลได้
               if (saveDraft <= saveServer) {
                 // console.log("server" + saveServer);
@@ -482,7 +532,6 @@ export default {
               } else {
                 this.isSync = true;
               }
-              console.log(this.isSync);
             });
         });
     }

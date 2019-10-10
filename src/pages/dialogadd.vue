@@ -809,20 +809,20 @@ export default {
         })
         .onOk(() => {
           this.loadingShow();
-          this.dataDb
+          this.db.dialogData
+            .doc(this.dockey)
             .update({
               url: ""
             })
             .then(() => {
-              st.child("videos/dialog/" + this.dockey + ".mp4")
-                .delete()
-                .then(res => {
-                  this.db.dialog.set({ saveDraft: microtime });
-                  this.loadingHide();
-                  // window.location.reload();
-                  // this.$router.push("/dialog/edit/" + this.dockey + "/2");
-                });
+              st.child("videos/dialog/" + this.dockey + ".mp4").delete();
+
+              // window.location.reload();
+              // this.$router.push("/dialog/edit/" + this.dockey + "/2");
+
+              this.db.dialog.set({ saveDraft: microtime });
               this.isUploadComplete = false;
+              this.loadingHide();
             });
         });
     },
