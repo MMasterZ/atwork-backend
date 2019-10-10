@@ -207,12 +207,16 @@ export default {
             return a.label - b.label ? 1 : -1;
           });
           //โหลดข้อมูลสถานประกอบการมาไว้ในตัวเลือก
-          this.dataObj.business = this.optionsSelect[0].value;
+          this.dataObj.business = this.$q.localStorage.getItem("business");
+          // this.dataObj.business = this.optionsSelect[0].value;
           this.loadCustomer();
         });
     },
     //โหลดข้อมูลcustomer
     loadCustomer() {
+      this.loadingShow();
+      this.$q.localStorage.set("business", this.dataObj.business);
+      console.log(this.dataObj.business);
       db.collection("CustomerAccounts")
         .where("businessKey", "==", this.dataObj.business)
         .where("status", "==", true)
@@ -276,9 +280,7 @@ export default {
           //กดปุ่มตกลง จะเปลี่ยนสถานะเป้น fals
           db.collection("CustomerAccounts")
             .doc(key)
-            .update({
-              status: false
-            })
+            .delete()
             .then(() => {
               this.loadCustomer();
               this.notifyGreen("ลบข้อมูลเสร็จสิ้น");

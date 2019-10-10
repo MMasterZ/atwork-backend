@@ -98,7 +98,7 @@
           </div>
           <div class="col-md-6 col-xs-12 q-pa-sm">
             <q-select
-              label="ตำแหน่ง"
+              label="บทเรียน"
               outlined
               v-model="userObj.positionKey"
               :options="positionOptions"
@@ -107,7 +107,7 @@
             ></q-select>
           </div>
         </div>
-
+        {{ this.vocabData}}
         <div class="q-py-lg row justify-center" align="center ">
           <q-btn
             label="ยกเลิก"
@@ -132,6 +132,7 @@ import { db } from "../router/index.js";
 export default {
   data() {
     return {
+      vocabData: "",
       userObj: {
         businessKey: "",
         name: "",
@@ -174,8 +175,8 @@ export default {
           this.options.sort((a, b) => {
             return a.label - b.label ? 1 : -1;
           });
-
-          this.userObj.businessKey = this.$route.params.businesskey;
+          this.userObj.businessKey = this.$q.localStorage.getItem("business");
+          // this.userObj.businessKey = this.$route.params.businesskey;
           this.loadDepartment();
         });
     },
@@ -231,6 +232,7 @@ export default {
             };
             this.positionOptions.push(PositionData);
           });
+
           this.userObj.positionKey = this.positionOptions[0].value;
           if (this.$route.name == "accountedit") {
             this.loadEdit();
@@ -272,10 +274,10 @@ export default {
                 this.isSaveData = false;
               } else {
                 //ถ้าเบอร์ไม่ซ้ำให้บันทึกแบบเอาขีดออก
+
                 this.userObj.tel = this.userObj.tel.replace(/-/g, "");
                 db.collection("CustomerAccounts").add(this.userObj);
                 this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-
                 this.$router.push("/account");
               }
             });
@@ -325,12 +327,31 @@ export default {
     cencel() {
       this.$router.push("/account");
     },
+    loadvocab() {
+      db.collection("Vocabulary")
+        .doc("server")
+        .collection("data")
+        .get()
+        .then(doc => {
+          doc.forEach(element => {
+            let dataKey = {
+              key: element.id
+            };
+            let lastdata = {
+              ...dataKey,
+              ...element.data()
+            };
+            this.vocabData = lastdata;
+          });
+        });
+    },
     //โหลดข้อมูลแก้ไข
     loadEdit() {
       db.collection("CustomerAccounts")
         .doc(this.$route.params.userkey)
         .get()
         .then(doc => {
+          this.loadvocab();
           this.userObj = doc.data();
           this.$q.loading.hide();
           this.oldPhoneNumber = this.userObj.tel;
