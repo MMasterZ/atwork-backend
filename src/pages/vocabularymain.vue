@@ -64,6 +64,7 @@
                 round
                 icon="fas fa-print"
                 class="desktop-only text-body1 text-white"
+                @click="printBtn(obj.positions.value)"
               />
             </div>
           </div>
@@ -71,7 +72,6 @@
           <div class="q-pb-lg flex flex-center">
             <q-pagination
               v-model="page"
-              @click="showPage()"
               :max="vocabularyList.length"
               color="blue-grey-10"
               :direction-links="true"
@@ -229,10 +229,17 @@ export default {
       },
       positionOptionsServer: [],
       pageServer: 1,
-      customerList: []
+      customerList: [],
+      isPrint: false
     };
   },
   methods: {
+    printBtn(type) {
+      let routeData = this.$router.resolve({
+        path: "/vocabulary/print/" + type
+      });
+      window.open(routeData.href, "_blank");
+    },
     //******************** โหลดข้ำมูลคำศัพท์มาแสดง   *****************/
     loadData() {
       db.collection("Vocabulary")
@@ -363,17 +370,22 @@ export default {
 
     //******************** ซิงค์ข้อมูลเซิฟเวอร์   *****************/
     async syncBtn() {
-      //update server time
-      console.clear();
+      let loadVocabData = await db
+        .collection("Vocabulary")
+        .doc("draft")
+        .collection("data")
+        .where("url", "==", "")
+        .get();
+
+      if (loadVocabData.size > 0) {
+        this.notifyRed("กรุณาเช็คข้อมูล URL ให้ครบก่อนทำการ Sync ข้อมูล");
+        this.loadingHide();
+        return;
+      }
+
       this.loadingShow();
 
       let microtime = await this.loadTime();
-      // console.log(microtime);
-      // db.collection("Vocabulary")
-      //   .doc("server")
-      //   .set({
-      //     saveServer: microtime
-      //   });
       // delete all record from server
       let deleteDataServer = await db
         .collection("Vocabulary")
@@ -389,7 +401,7 @@ export default {
           .delete();
       });
 
-      // // copy all record from draft to server
+      // copy all record from draft to server
       let draftData = await db
         .collection("Vocabulary")
         .doc("draft")
@@ -496,6 +508,13 @@ export default {
           .doc(data.id)
           .delete();
       }
+
+      //update server time
+      // db.collection("Vocabulary")
+      //   .doc("server")
+      //   .set({
+      //     saveServer: microtime
+      //   });
 
       this.loadingHide();
       this.checkSyncData();
