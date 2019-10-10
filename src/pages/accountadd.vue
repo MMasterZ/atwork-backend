@@ -107,7 +107,7 @@
             ></q-select>
           </div>
         </div>
-        {{ this.vocabData}}
+
         <div class="q-py-lg row justify-center" align="center ">
           <q-btn
             label="ยกเลิก"
@@ -242,7 +242,7 @@ export default {
         });
     },
     //บันทึก
-    saveData() {
+    async saveData() {
       //   db.collection("CustomerAccounts").add(this.userObj);
       this.$refs.tel.validate(); // ช่องเบอร์โทร
       this.$refs.name.validate(); // ช่องชื่อพนักงาน
@@ -276,9 +276,65 @@ export default {
                 //ถ้าเบอร์ไม่ซ้ำให้บันทึกแบบเอาขีดออก
 
                 this.userObj.tel = this.userObj.tel.replace(/-/g, "");
-                db.collection("CustomerAccounts").add(this.userObj);
-                this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-                this.$router.push("/account");
+                db.collection("CustomerAccounts")
+                  .add(this.userObj)
+                  .then(async docAdd => {
+                    this.loadingShow();
+                    //ทำการ update Vocabulary / PositionSelected
+                    await db
+                      .collection("Vocabulary")
+                      .doc("server")
+                      .collection("data")
+                      .get()
+                      .then(async doc => {
+                        for (const docvocab of doc.docs) {
+                          await db
+                            .collection("CustomerAccounts")
+                            .doc(docAdd.id)
+                            .collection("Vocabulary")
+                            .doc(docvocab.id)
+                            .set({
+                              correct: 0,
+                              incorrect: 0,
+                              meaning: docvocab.data().meaning,
+                              positionKey: docvocab.data().positionKey,
+                              ratio: 0,
+                              url: docvocab.data().url,
+                              vocab: docvocab.data().vocab
+                            });
+                        }
+                      });
+                    await db
+                      .collection("Position")
+                      .get()
+                      .then(async doc => {
+                        for (const docPosition of doc.docs) {
+                          let isUserData = false;
+                          if (docPosition.id == this.userObj.positionKey) {
+                            isUserData = true;
+                          }
+                          // console.log(
+                          //   docAdd.id,
+                          //   docPosition.id,
+                          //   docPosition.data()
+                          // );
+                          await db
+                            .collection("CustomerAccounts")
+                            .doc(docAdd.id)
+                            .collection("PositionSelected")
+                            .doc(docPosition.id)
+                            .set({
+                              isUse: isUserData,
+                              name: docPosition.data().name,
+                              orderid: docPosition.data().orderid,
+                              status: docPosition.data().status
+                            });
+                        }
+                      });
+                    this.loadingHide();
+                    this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+                    this.$router.push("/account");
+                  });
               }
             });
         } else {
