@@ -254,12 +254,26 @@ export default {
       } else if (vocabDraftCheck.size > 0 || vocabServerCheck.size > 0) {
         this.notifyRed("มีคำศัพท์ใช้งานอยู่ไม่สามารลบได้");
       } else {
-        db.collection("Position")
-          .doc(positionKey)
-          .delete()
-          .then(() => {
-            this.notifyGreen("ลบข้อมูลเรียบร้อย");
-            this.$router.push("/position");
+        //Delete data from PositionSelected
+        db.collection("CustomerAccounts")
+          .get()
+          .then(async userDoc => {
+            for (const userData of userDoc.docs) {
+              // console.log(userData.id, positionKey);
+              await db
+                .collection("CustomerAccounts")
+                .doc(userData.id)
+                .collection("PositionSelected")
+                .doc(positionKey)
+                .delete();
+            }
+            db.collection("Position")
+              .doc(positionKey)
+              .delete()
+              .then(() => {
+                this.notifyGreen("ลบข้อมูลเรียบร้อย");
+                this.$router.push("/lesson");
+              });
           });
       }
       this.loadingHide();
@@ -502,10 +516,30 @@ export default {
                                   this.situationArry[xx]
                                 );
                               }
-                              this.$router.push("/lesson");
-                              this.isHasSituation = false;
-                              this.isSeveBtn = true;
-                              this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+                              this.loadingShow();
+                              //add lesson into each user
+                              db.collection("CustomerAccounts")
+                                .get()
+                                .then(async docuser => {
+                                  for (const datauser of docuser.docs) {
+                                    await db
+                                      .collection("CustomerAccounts")
+                                      .doc(datauser.id)
+                                      .collection("PositionSelected")
+                                      .doc(doc.id)
+                                      .set({
+                                        isUse: false,
+                                        name: this.position.name,
+                                        orderid: this.position.orderid,
+                                        status: true
+                                      });
+                                  }
+                                  this.loadingHide();
+                                  this.isHasSituation = false;
+                                  this.isSeveBtn = true;
+                                  this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+                                  this.$router.push("/lesson");
+                                });
                             });
                         } else {
                           this.isSeveBtn = true;
