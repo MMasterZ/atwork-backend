@@ -237,7 +237,7 @@ export default {
     // โหลดข้อมูลออกมาโชว์
     loadData() {
       this.$q.localStorage.set("currentposition", this.obj.positions);
-      this.loadingShow();
+      // this.loadingShow();
       db.collection("Expression")
         .doc(this.tab)
         .collection("data")
@@ -290,7 +290,7 @@ export default {
     },
     // โหลดตำแหน่ง
     loadPosition() {
-      this.loadingShow();
+      // this.loadingShow();
       db.collection("Position")
         .orderBy("orderid")
         .get()

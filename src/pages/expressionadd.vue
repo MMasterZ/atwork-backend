@@ -142,6 +142,7 @@ import { st } from "../router/index.js";
 export default {
   data() {
     return {
+      pass: "",
       ordernumber: "",
       textedit: "",
       isSeveBtn: true,
@@ -188,6 +189,8 @@ export default {
             this.positionArry.push(dataKey);
           });
         }
+        this.pass = this.obj.positionKey;
+
         this.obj.positionKey = this.$q.localStorage.getItem("currentposition");
         this.loadSituation();
       });
@@ -210,10 +213,23 @@ export default {
             });
             if (this.$route.name == "expressionadd") {
               this.obj.situationKey = this.situationArry[0].value;
+              this.loadingHide();
             } else {
-              this.obj.situationKey = this.situationArry[0].value;
+              this.db.expressionData
+                .doc(this.$route.params.key)
+                .get()
+                .then(doc => {
+                  let data = {
+                    situationID: doc.data().situationKey
+                  };
+                  this.obj.situationKey = data.situationID;
+
+                  this.loadingHide();
+                  if (this.obj.positionKey != this.pass) {
+                    this.obj.situationKey = this.situationArry[0].value;
+                  }
+                });
             }
-            this.loadingHide();
           } else {
             this.obj.situationKey = "-";
             this.loadingHide();
