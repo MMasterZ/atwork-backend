@@ -352,6 +352,8 @@ export default {
         }
         // บันทึกเพื่มข้อมูล
         else {
+          this.isCheckLogin = true;
+          this.loadingShow();
           db.collection("Business")
             .where("name", "==", this.business.name)
             .get()
@@ -376,7 +378,12 @@ export default {
                 } else {
                   if (this.departments.name == "") {
                     this.isHasDepart = true;
+                    this.isCheckLogin = false;
                     this.notifyRed("กรุณากรอกชื่อแผนก");
+                  } else if (this.departments.name.length > 0) {
+                    this.isHasDepart = true;
+                    this.isCheckLogin = false;
+                    this.notifyRed("กรุณากดเพิ่มแผนก");
                   } else {
                     this.isHasDepart = false;
                   }
