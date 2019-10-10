@@ -169,47 +169,69 @@ export default {
 
     async syncNow() {
       //update server time
+
+      let loadDraftData = await db
+        .collection("Expression")
+        .doc("draft")
+        .collection("data")
+        .where("url", "==", "")
+        .get();
+
+      if (loadDraftData.size > 0) {
+        this.notifyRed("กรุณาเช็คข้อมูล URL ให้ครบก่อนทำการ Sync ข้อมูล");
+        this.loadingHide();
+        return;
+      }
+
+      this.loadingShow();
+
       let api = "https://api.winner-english.com/data/api/gettime.php";
       let response = await axios.get(api);
       let date = response.data[0].date;
       let microtime = response.data[0].microtime;
-      db.collection("Expression")
+
+      //delete all record from server collection
+      let serverData = await db
+        .collection("Expression")
+        .doc("server")
+        .collection("data")
+        .get();
+
+      for (const data of serverData.docs) {
+        await db
+          .collection("Expression")
+          .doc("server")
+          .collection("data")
+          .doc(data.id)
+          .delete();
+      }
+
+      //copy all record from draft collection to server collection
+      let draftDara = await db
+        .collection("Expression")
+        .doc("draft")
+        .collection("data")
+        .get();
+
+      for (const data of draftDara.docs) {
+        await db
+          .collection("Expression")
+          .doc("server")
+          .collection("data")
+          .doc(data.id)
+          .set(data.data());
+      }
+
+      await db
+        .collection("Expression")
         .doc("server")
         .set({
           saveServer: microtime
         });
 
-      //delete all record from server collection
-      db.collection("Expression")
-        .doc("server")
-        .collection("data")
-        .get()
-        .then(doc => {
-          doc.forEach(data => {
-            db.collection("Expression")
-              .doc("server")
-              .collection("data")
-              .doc(data.id)
-              .delete();
-          });
-          //copy all record from draft collection to server collection
-          db.collection("Expression")
-            .doc("draft")
-            .collection("data")
-            .get()
-            .then(doc2 => {
-              doc2.forEach(data2 => {
-                db.collection("Expression")
-                  .doc("server")
-                  .collection("data")
-                  .doc(data2.id)
-                  .set(data2.data());
-              });
-              //notice finish process
-              this.notifyGreen("อัพโหลดข้อมูลเรียบร้อย");
-              this.checkSync();
-            });
-        });
+      //notice finish process
+      this.notifyGreen("อัพโหลดข้อมูลเรียบร้อย");
+      this.checkSync();
     },
     async checkSync() {
       let serverTime;
