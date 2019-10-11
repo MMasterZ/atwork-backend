@@ -43,13 +43,21 @@
           <span>{{dataTime}}</span>
         </div>
       </div>
-
+      <div class="q-mt-md text-center" style="border:1px solid#6D6E71;">
+        <div class="text-h6">
+          <div class="q-mt-md">{{this.titleEng}}</div>
+          <div class="q-px-xl">
+            <hr />
+          </div>
+          <div class="q-mb-md">{{this.titleThai}}</div>
+        </div>
+      </div>
       <table class="table">
         <thead>
           <tr>
-            <th colspan="3">
-              <div class="q-mt-md">fsef</div>
-            </th>
+            <td>
+              <div class="q-mt-md"></div>
+            </td>
           </tr>
           <tr
             class="text-white text-h5 q-mt-md"
@@ -123,61 +131,76 @@ export default {
       dialogList: [],
       dataTime: "",
       innerWidth: window.innerWidth,
-      innerHeight: window.innerHeight
+      innerHeight: window.innerHeight,
+      titleThai: "",
+      titleEng: ""
     };
   },
   methods: {
-    async loadDialog() {
-      this.loadingShow();
+    loadDialog() {
+      let speakerList = [];
+
       db.collection("Dialog")
         .doc("draft")
         .collection("data")
         .doc(this.$route.params.key)
-        .collection("sentence")
-        .orderBy("orderId")
+        .collection("speaker")
         .get()
-        .then(async doc => {
-          for (const element of doc.docs) {
-            let dataKey = {
-              Key: element.id
+        .then(speakerData => {
+          speakerData.forEach(speaker => {
+            let dataTemp = {
+              id: speaker.id,
+              speakerEng: speaker.data().speakerEng,
+              speakerThai: speaker.data().speakerThai
             };
-            let fienal = {
-              ...dataKey,
-              ...element.data()
-            };
-            this.speakerID = fienal.speakerKey;
-            await db
-              .collection("Dialog")
-              .doc("draft")
-              .collection("data")
-              .doc(this.$route.params.key)
-              .collection("speaker")
-              .doc(this.speakerID)
-              .get()
-              .then(doc => {
-                let speakerName = {
-                  speakerEng: doc.data().speakerEng,
-                  speakerThai: doc.data().speakerThai
+            speakerList.push(dataTemp);
+          });
+          db.collection("Dialog")
+            .doc("draft")
+            .collection("data")
+            .doc(this.$route.params.key)
+            .collection("sentence")
+            .orderBy("orderId")
+            .get()
+            .then(doc => {
+              doc.forEach(item => {
+                // console.log(item.data().speakerKey);
+                let obj = speakerList.find(
+                  obj => obj.id == item.data().speakerKey
+                );
+                // console.log(obj.speakerEng);
+                let dataTemp2 = {
+                  speakerEng: obj.speakerEng,
+                  speakerThai: obj.speakerThai
                 };
-                let finalData = {
-                  ...speakerName,
-                  ...fienal
+                let dataFinal = {
+                  ...dataTemp2,
+                  ...item.data()
                 };
-                this.dialogList.push(finalData);
+                this.dialogList.push(dataFinal);
               });
-            this.loadData();
-            this.loadingHide();
-          }
+            });
         });
     },
-    loadData() {
+
+    async loadData() {
+      let st = await this.loadTime();
+      let date = new Date(st);
+
+      this.dataTime =
+        date.getDate() +
+        "/" +
+        date.getMonth() +
+        "/" +
+        (date.getFullYear() + 543);
       db.collection("Dialog")
         .doc("draft")
         .collection("data")
         .doc(this.$route.params.key)
         .get()
         .then(doc => {
-          console.log(doc.data());
+          this.titleEng = doc.data().situationEng;
+          this.titleThai = doc.data().situationThai;
         });
     },
     printBtn() {
@@ -196,6 +219,7 @@ export default {
 
   mounted() {
     this.loadDialog();
+    this.loadData();
   }
 };
 </script>
