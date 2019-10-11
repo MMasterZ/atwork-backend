@@ -29,51 +29,84 @@
     </div>
 
     <div size="A4" class="q-pa-md printMe">
-      <table class="table">
-        <tr>
-          <th
-            style=" background: rgb(43, 43, 43);"
-            class="q-pa-sm text-h6 text-white"
-            colspan="3"
-          >{{this.titelName }}</th>
-        </tr>
-      </table>
-      <div class="q-pt-md">
-        <div
-          v-for="(item,index ) in    expressionList "
-          :key="index "
-          class="row text-h6"
-          style="border: 1px solid grey;width:100%; border-collapse: collapse; "
-        >
-          <div class="col-1 q-pt-sm text-center">
-            <span>{{index +1}}</span>
-          </div>
-          <div class="col-11 box q-py-sm">
-            <div class="q-pl-md">
-              <span>{{item.sentenceEnglish}}</span>
-            </div>
-            <div class="q-pl-md">
-              <span>{{item.sentenceThai}}</span>
-            </div>
-            <div class="q-px-md">
-              <hr />
-            </div>
-            <div class="q-pl-md">
-              <span>{{item.situationName}}</span>
-            </div>
-          </div>
-        </div>
-        <div class="q-pt-xl text-body1" align="right">
+      <div
+        align="center"
+        class="rounded-borders text-h5 row"
+        style="border:1px solid#6D6E71;padding:9px;"
+      >
+        <div class="col-2"></div>
+        <div class="col-8" align="center">{{titelName}}</div>
+
+        <div class="col-2 text-body1 self-center" align="right">
           <span>{{dataTime}}</span>
         </div>
       </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th colspan="2">
+              <div class="q-mt-md"></div>
+            </th>
+          </tr>
+          <tr
+            class="text-white text-h6 q-mt-md"
+            style="background-color:#6D6E71;border:1px solid#6D6E71;"
+          >
+            <th style="padding:14px;">
+              <div align="left">ลำดับ</div>
+            </th>
+            <th style="padding:14px;">
+              <div align="left">ประโยค</div>
+            </th>
+          </tr>
+        </thead>
+
+        <tbody v-if="expressionList.length > 0">
+          <tr
+            v-for="(item,index ) in    expressionList "
+            :key="index "
+            class="text-h6"
+            style="border:1px solid#6D6E71;"
+          >
+            <td style="width:10%">
+              <div class="q-pt-sm text-center">
+                <span>{{index +1}}</span>
+              </div>
+            </td>
+            <td style="width:90%">
+              <div class="box q-py-sm">
+                <div class="q-pl-md">
+                  <span>{{item.sentenceEnglish}}</span>
+                </div>
+                <div class="q-pl-md">
+                  <span>{{item.sentenceThai}}</span>
+                </div>
+                <div class="q-px-md">
+                  <hr />
+                </div>
+                <div class="q-pl-md">
+                  <span>{{item.situationName}}</span>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+        <tbody v-if="expressionList.length == 0">
+          <tr style="border:1px solid#646464;" class="text-h6">
+            <td colspan="3" style="padding:13px;">
+              <div align="center">
+                <span>ไม่มีข้อมูล</span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
 
 <script>
 import { db } from "../router/index.js";
-
 export default {
   data() {
     return {
@@ -81,8 +114,7 @@ export default {
       titelName: "",
       dataTime: "",
       expressionList: [],
-      lessonName: "",
-      vocabularyList: [],
+
       innerWidth: window.innerWidth,
       innerHeight: window.innerHeight
     };
@@ -94,7 +126,18 @@ export default {
     closeBtn() {
       this.$router.push("/expression");
     },
-    loadData() {
+    async loadData() {
+      this.loadingShow();
+      let st = await this.loadTime();
+      let date = new Date(st);
+
+      this.dataTime =
+        date.getDate() +
+        "/" +
+        date.getMonth() +
+        "/" +
+        (date.getFullYear() + 543);
+
       db.collection("Expression")
         .doc("draft")
         .collection("data")
@@ -121,7 +164,7 @@ export default {
                     this.expressionList.sort((a, b) => {
                       return a.orderid - b.orderid;
                     });
-                    this.loadTime();
+
                     this.loadingHide();
                   });
               });
@@ -131,40 +174,7 @@ export default {
           }
         });
     },
-    loadTime() {
-      let date = new Date(st);
-      var thday = new Array(
-        "อาทิตย์",
-        "จันทร์",
-        "อังคาร",
-        "พุธ",
-        "พฤหัส",
-        "ศุกร์",
-        "เสาร์"
-      );
-      var thmonth = new Array(
-        "มกราคม",
-        "กุมภาพันธ์",
-        "มีนาคม",
-        "เมษายน",
-        "พฤษภาคม",
-        "มิถุนายน",
-        "กรกฎาคม",
-        "สิงหาคม",
-        "กันยายน",
-        "ตุลาคม",
-        "พฤศจิกายน",
-        "ธันวาคม"
-      );
 
-      this.dataTime =
-        "วันที่ " +
-        date.getDate() +
-        "/" +
-        date.getMonth() +
-        "/" +
-        (date.getYear() - 100);
-    },
     loadposition() {
       db.collection("Position")
         .doc(this.positions)
