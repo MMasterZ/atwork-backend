@@ -58,14 +58,10 @@
                 icon="fas fa-plus"
                 class="text-body1 text-white q-mx-md"
               />
-              <q-btn
-                size="md"
-                color="secondary"
-                round
-                icon="fas fa-print"
-                class="desktop-only text-body1 text-white"
-                @click="printBtn(obj.positions.value)"
-              />
+              <router-link to="/vocabulary/print">
+                <!-- <q-icon name="fas fa-print" class="bg-primary"></q-icon> -->
+                <q-btn icon="fas fa-print" round class="bg-secondary text-white"></q-btn>
+              </router-link>
             </div>
           </div>
           <!-- แสดงหน้าจำนวนของคำศัพท์ในแต่ละตำแหน่ง -->
