@@ -43,7 +43,7 @@
             <div class="col-md-6 col-xs-10">
               <q-select
                 outlined
-                v-model="positionID"
+                v-model="obj.positionID"
                 :options="optionsPosition"
                 @input="loadDialog()"
                 label="บทเรียน"
@@ -193,7 +193,7 @@ export default {
       tabShow: "draft",
       addData: false,
       // ตัวเลือกในหน้า แบบร่าง
-      positionID: "",
+      obj: { positionID: "" },
       optionsPosition: [],
       dialogList: [],
       // ตัวเลือกในหน้า เซิร์ฟเวอร์
@@ -414,7 +414,7 @@ export default {
     },
     // ไปยังหน้า ปริ้น รายการต่างๆของ VDO
     printBtn(key) {
-      alert("พักตรงนี้ดีกว่า... เหนื่อยจุงเบย");
+      this.$router.push("/dialog/print/" + key);
     },
     // โหลดข้อมูล บทเรียน ของฝั่ง draft
     loadPosition() {
@@ -432,20 +432,24 @@ export default {
             this.optionsPosition.sort((a, b) => {
               return a.label > b.label ? 1 : -1;
             });
-            this.positionID = this.optionsPosition[0].value;
+
+            this.obj.positionID = this.$q.localStorage.getItem("position");
+            // this.obj.positionID = this.optionsPosition[0].value;
             this.loadingHide();
           });
+
           this.loadDialog();
         });
     },
     // โหลดข้อมูล บทสนทนา จากฝั่ง draft
     loadDialog() {
+      this.$q.localStorage.set("position", this.obj.positionID);
       this.dialogList = [];
       this.loadingShow();
       db.collection("Dialog")
         .doc("draft")
         .collection("data")
-        .where("positionSelec", "array-contains", this.positionID)
+        .where("positionSelec", "array-contains", this.obj.positionID)
         .get()
         .then(doc => {
           if (doc.size != 0) {

@@ -248,7 +248,7 @@
               <div class="q-pr-md-sm q-py-xs-sm col-md-4 col-xs-12" style="height:70px">
                 <q-input
                   outlined
-                  v-model="dialog.orderId"
+                  v-model.number="dialog.orderId"
                   label="ลำดับประโยค"
                   type="number"
                   :error="isErrorHasOrder"
@@ -460,7 +460,7 @@
                     <q-card-section>
                       <q-input
                         outlined
-                        v-model="dialog.orderId"
+                        v-model.number="dialog.orderId"
                         label="ลำดับประโยค"
                         type="number"
                         :rules="[value => !!value ]"

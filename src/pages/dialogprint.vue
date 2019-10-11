@@ -36,7 +36,7 @@
       >
         <div class="col-2"></div>
         <div class="col-8" align="center">
-          <span>คำศัพท์ : {{lessonName}}</span>
+          <span>บทสนทนา {{lessonName}}</span>
         </div>
 
         <div class="col-2 text-body1 self-center" align="right">
@@ -48,7 +48,7 @@
         <thead>
           <tr>
             <th colspan="3">
-              <div class="q-mt-md"></div>
+              <div class="q-mt-md">fsef</div>
             </th>
           </tr>
           <tr
@@ -59,39 +59,44 @@
               <div align="left">ลำดับ</div>
             </td>
             <td style="padding:14px;">
-              <div align="left">คำศัพท์</div>
+              <div align="left">ผู้สนทนา</div>
             </td>
             <td style="padding:14px;">
-              <div align="left">ความหมาย</div>
+              <div align="left">บทสนทนา</div>
             </td>
           </tr>
         </thead>
 
-        <tbody v-if="vocabularyList.length > 0">
+        <tbody v-if="dialogList.length > 0">
           <tr
-            v-for="(item,index) in vocabularyList"
+            v-for="(item,index) in dialogList"
             :key="index"
             class="text-h6"
             style="border:1px solid#6D6E71;"
           >
-            <td style="width:100px;padding:13px;vertical-align: top;margin-bottom:5px;">
+            <td style="width:50px;padding:13px;vertical-align: top;margin-bottom:5px; ">
               <div align="left" class="q-pl-md">
                 <span>{{index + 1}}</span>
               </div>
             </td>
-            <td style="width:350px;padding:13px;vertical-align: top;">
+            <td style="width:200px;padding:13px;vertical-align: top; border:1px solid#6D6E71;">
               <div align="left">
-                <span>{{item.vocab}}</span>
+                <span>{{item.speakerEng}}</span>
+                <br />
+                <span>{{item.speakerThai}}</span>
               </div>
             </td>
-            <td style="width:450px;padding:13px;vertical-align: top;">
+            <td style="width:950px;padding:13px;vertical-align: top;">
               <div align="left">
-                <span>{{item.meaning}}</span>
+                <span>{{item.sentenceEng}}</span>
+              </div>
+              <div align="left">
+                <span>{{item.sentenceThai}}</span>
               </div>
             </td>
           </tr>
         </tbody>
-        <tbody v-if="vocabularyList.length == 0">
+        <tbody v-if="dialogList.length == 0">
           <tr style="border:1px solid#6D6E71;" class="text-h6">
             <td colspan="3" style="padding:13px;">
               <div align="center">
@@ -107,81 +112,90 @@
 
 <script>
 import { db } from "../router/index.js";
+import { async } from "q";
 export default {
   data() {
     return {
+      show: "",
+      speakerName: "",
+      speakerID: "",
       lessonName: "",
-      vocabularyList: [],
+      dialogList: [],
       dataTime: "",
       innerWidth: window.innerWidth,
       innerHeight: window.innerHeight
     };
   },
   methods: {
-    printBtn() {
-      window.print();
-    },
-    closeBtn() {
-      window.close();
-    },
-    async loadData() {
+    async loadDialog() {
       this.loadingShow();
-
-      let st = await this.loadTime();
-      let date = new Date(st);
-
-      this.dataTime =
-        date.getDate() +
-        "/" +
-        date.getMonth() +
-        "/" +
-        (date.getFullYear() + 543);
-
-      db.collection("Vocabulary")
+      db.collection("Dialog")
         .doc("draft")
         .collection("data")
-        .where("positionKey", "==", this.$route.params.key)
+        .doc(this.$route.params.key)
+        .collection("sentence")
+        .orderBy("orderId")
         .get()
-        .then(doc => {
-          if (doc.size > 0) {
-            doc.forEach(element => {
-              let dataKey = {
-                key: element.id
-              };
-              let final = {
-                ...dataKey,
-                ...element.data()
-              };
-              this.vocabularyList.push(final);
-            });
-
-            this.vocabularyList.sort((a, b) => {
-              return a.vocab > b.vocab ? 1 : -1;
-            });
-          }
-          if (this.$route.params.key != "ทั่วไป") {
-            this.loadPosition();
-          } else {
-            this.lessonName = "ทั่วไป";
+        .then(async doc => {
+          for (const element of doc.docs) {
+            let dataKey = {
+              Key: element.id
+            };
+            let fienal = {
+              ...dataKey,
+              ...element.data()
+            };
+            this.speakerID = fienal.speakerKey;
+            await db
+              .collection("Dialog")
+              .doc("draft")
+              .collection("data")
+              .doc(this.$route.params.key)
+              .collection("speaker")
+              .doc(this.speakerID)
+              .get()
+              .then(doc => {
+                let speakerName = {
+                  speakerEng: doc.data().speakerEng,
+                  speakerThai: doc.data().speakerThai
+                };
+                let finalData = {
+                  ...speakerName,
+                  ...fienal
+                };
+                this.dialogList.push(finalData);
+              });
+            this.loadData();
             this.loadingHide();
           }
         });
     },
-    loadPosition() {
-      db.collection("Position")
+    loadData() {
+      db.collection("Dialog")
+        .doc("draft")
+        .collection("data")
         .doc(this.$route.params.key)
         .get()
         .then(doc => {
-          this.lessonName = doc.data().name;
-          this.loadingHide();
+          console.log(doc.data());
         });
     },
+    printBtn() {
+      window.print();
+    },
+    closeBtn() {
+      this.$router.push("/dialog");
+      window.close();
+    },
+    loadSeaker() {},
+
     onResize(size) {
       (this.innerWidth = size.width), (this.innerHeight = size.height);
     }
   },
+
   mounted() {
-    // this.loadData();
+    this.loadDialog();
   }
 };
 </script>
