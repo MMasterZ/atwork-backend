@@ -26,6 +26,11 @@ const routes = [{
     name: "vocabularyprint"
   },
   {
+    path: "/dialog/print/:key",
+    component: () => import("pages/dialogprint.vue"),
+    name: "dialogprint"
+  },
+  {
     path: "/",
     component: () => import("layouts/MyLayout.vue"),
     children: [{
@@ -43,13 +48,6 @@ const routes = [{
         path: "/admin/add",
         component: () => import("pages/adminadd.vue"),
         name: "adminadd"
-      },
-      // Print
-      {
-        name: "dialogprint"
-        path: "/admin/edit/:key",
-        component: () => import("pages/adminadd.vue"),
-        name: "adminedit"
       },
       {
         path: "/user/edit",
