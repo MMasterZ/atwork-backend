@@ -59,17 +59,10 @@
               size="md"
               :disable="tab!='draft'?true:false"
             />
-            <q-btn
-              class="text-body1 text-grey-2 q-ml-sm mobile-hide"
-              :class="{ 'bg-grey-7' : tab!='draft' , 'bg-secondary' : tab=='draft'}"
-              flat
-              round
-              push
-              icon="fas fa-print"
-              size="md"
-              :disable="tab!='draft'?true:false"
-              @click="printMe()"
-            />
+            <router-link to="/expression/print">
+              <!-- <q-icon name="fas fa-print" class="bg-primary"></q-icon> -->
+              <q-btn icon="fas fa-print" round class="bg-secondary text-white"></q-btn>
+            </router-link>
           </div>
         </div>
 
@@ -259,7 +252,7 @@ export default {
     // โหลดข้อมูลออกมาโชว์
     loadData() {
       this.$q.localStorage.set("currentposition", this.obj.positions);
-      // this.loadingShow();
+      this.loadingShow();
       db.collection("Expression")
         .doc(this.tab)
         .collection("data")
@@ -312,7 +305,7 @@ export default {
     },
     // โหลดตำแหน่ง
     loadPosition() {
-      // this.loadingShow();
+      this.loadingShow();
       db.collection("Position")
         .orderBy("orderid")
         .get()
