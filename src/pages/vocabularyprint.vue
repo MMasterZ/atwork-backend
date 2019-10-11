@@ -31,42 +31,50 @@
     <div size="A4" class="q-pa-md printMe">
       <div
         align="center"
-        class="rounded-borders text-h5"
-        style="border:1px solid#646464;padding:12px;"
+        class="rounded-borders text-h5 row"
+        style="border:1px solid#6D6E71;padding:9px;"
       >
-        <span>คำศัพท์ : {{lessonName}}</span>
+        <div class="col-2"></div>
+        <div class="col-8" align="center">
+          <span>คำศัพท์ : {{lessonName}}</span>
+        </div>
+
+        <div class="col-2 text-body1 self-center" align="right">
+          <span>{{dataTime}}</span>
+        </div>
       </div>
 
       <table class="table">
         <thead>
           <tr>
             <th colspan="3">
-              <div class="q-mt-sm"></div>
+              <div class="q-mt-md"></div>
             </th>
           </tr>
+          <tr
+            class="text-white text-h5 q-mt-md"
+            style="background-color:#6D6E71;border:1px solid#6D6E71;"
+          >
+            <td style="padding:14px;">
+              <div align="left">ลำดับ</div>
+            </td>
+            <td style="padding:14px;">
+              <div align="left">คำศัพท์</div>
+            </td>
+            <td style="padding:14px;">
+              <div align="left">ความหมาย</div>
+            </td>
+          </tr>
         </thead>
-        <tr
-          class="text-white text-h6 q-mt-md"
-          style="background-color:#646464;border:1px solid#646464;"
-        >
-          <th style="padding:14px;">
-            <div align="left">ลำดับ</div>
-          </th>
-          <th style="padding:14px;">
-            <div align="left">คำศัพท์</div>
-          </th>
-          <th style="padding:14px;">
-            <div align="left">ความหมาย</div>
-          </th>
-        </tr>
+
         <tbody v-if="vocabularyList.length > 0">
           <tr
             v-for="(item,index) in vocabularyList"
             :key="index"
             class="text-h6"
-            style="border:1px solid#646464;"
+            style="border:1px solid#6D6E71;"
           >
-            <td style="width:100px;padding:13px;vertical-align: top;">
+            <td style="width:100px;padding:13px;vertical-align: top;margin-bottom:5px;">
               <div align="left" class="q-pl-md">
                 <span>{{index + 1}}</span>
               </div>
@@ -76,7 +84,7 @@
                 <span>{{item.vocab}}</span>
               </div>
             </td>
-            <td style="width:350px;padding:13px;vertical-align: top;">
+            <td style="width:450px;padding:13px;vertical-align: top;">
               <div align="left">
                 <span>{{item.meaning}}</span>
               </div>
@@ -84,7 +92,7 @@
           </tr>
         </tbody>
         <tbody v-if="vocabularyList.length == 0">
-          <tr style="border:1px solid#646464;" class="text-h6">
+          <tr style="border:1px solid#6D6E71;" class="text-h6">
             <td colspan="3" style="padding:13px;">
               <div align="center">
                 <span>ไม่มีข้อมูล</span>
@@ -92,20 +100,6 @@
             </td>
           </tr>
         </tbody>
-        <tfoot>
-          <tr>
-            <td>
-              <div class="q-pt-sm"></div>
-            </td>
-          </tr>
-        </tfoot>
-        <tr>
-          <td colspan="3">
-            <div align="right" class="q-pt-xs q-mt-xs q-pr-sm text-body1">
-              <span>{{dataTime}}</span>
-            </div>
-          </td>
-        </tr>
       </table>
     </div>
   </div>
@@ -136,37 +130,12 @@ export default {
       let st = await this.loadTime();
       let date = new Date(st);
 
-      var thday = new Array(
-        "อาทิตย์",
-        "จันทร์",
-        "อังคาร",
-        "พุธ",
-        "พฤหัส",
-        "ศุกร์",
-        "เสาร์"
-      );
-      var thmonth = new Array(
-        "มกราคม",
-        "กุมภาพันธ์",
-        "มีนาคม",
-        "เมษายน",
-        "พฤษภาคม",
-        "มิถุนายน",
-        "กรกฎาคม",
-        "สิงหาคม",
-        "กันยายน",
-        "ตุลาคม",
-        "พฤศจิกายน",
-        "ธันวาคม"
-      );
-
       this.dataTime =
-        "วันที่ " +
         date.getDate() +
         "/" +
         date.getMonth() +
         "/" +
-        (date.getYear() - 100);
+        (date.getFullYear() + 543);
 
       db.collection("Vocabulary")
         .doc("draft")
