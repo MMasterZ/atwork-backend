@@ -491,71 +491,93 @@ export default {
                             });
                         }
 
-                        this.loadingHide();
                         this.isHasSituation = false;
                         this.isSeveBtn = true;
                         this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
                         this.$router.push("/lesson");
+                        this.loadingHide();
                       });
                   });
               });
           });
-      } else {
+      }
+
+      //
+      else {
         if (
           this.textOrderid == this.position.orderid &&
           this.textName == this.position.name
         ) {
-          // this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-          // this.$router.push("/lesson");
+          this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+          this.$router.push("/lesson");
         } else {
-          if (this.textOrderid == this.position.orderid) {
+          // Order ไม่เท่ากับอันเก่า
+          if (this.textOrderid != this.position.orderid) {
+            db.collection("Position")
+              .where("orderid", "==", this.position.orderid)
+              .get()
+              .then(getOrderid => {
+                if (getOrderid.size > 0) {
+                  this.notifyRed("กรุณาตรวจสอบข้อมูลลำดับช้ำ");
+                  this.loadingHide();
+                  return;
+                }
+
+                // Name ไม่เท่ากับอันเก่า
+                if (this.textName != this.position.name) {
+                  db.collection("Position")
+                    .where("name", "==", this.position.name)
+                    .get()
+                    .then(getName => {
+                      if (getName.size > 0) {
+                        this.notifyRed("กรุณาตรวจสอบข้อมูลชื่อช้ำ");
+                        this.loadingHide();
+                        return;
+                      }
+
+                      db.collection("Position")
+                        .doc(this.$route.params.key)
+                        .update(this.position);
+
+                      this.notifyGreen("บันทึกข้อมูลเรียบร้อยแล้ว");
+                      this.loadingHide();
+                      this.$router.push("/lesson");
+                    });
+                } else {
+                  db.collection("Position")
+                    .doc(this.$route.params.key)
+                    .update(this.position);
+
+                  this.notifyGreen("บันทึกข้อมูลเรียบร้อยแล้ว");
+                  this.loadingHide();
+                  this.$router.push("/lesson");
+                }
+              });
           }
-
-          db.collection("Position")
-            .where("orderid", "==", this.position.orderid)
-            .get()
-            .then(getOrderid => {
-              if (getOrderid.size > 0) {
-                this.notifyRed("กรุณาตรวจสอบข้อมูลลำดับช้ำ");
-                this.loadingHide();
-                return;
-              }
-
+          // Order เท่ากับอันเก่า
+          else {
+            // Name ไม่เท่ากับอันเก่า
+            if (this.textName != this.position.name) {
               db.collection("Position")
                 .where("name", "==", this.position.name)
                 .get()
                 .then(getName => {
                   if (getName.size > 0) {
                     this.notifyRed("กรุณาตรวจสอบข้อมูลชื่อช้ำ");
-                  } else {
-                    db.collection("Position")
-                      .doc(this.$route.params.key)
-                      .set(this.position);
-                    this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-                    this.$router.push("/lesson");
+                    this.loadingHide();
+                    return;
                   }
+
+                  db.collection("Position")
+                    .doc(this.$route.params.key)
+                    .update(this.position);
+
+                  this.notifyGreen("บันทึกข้อมูลเรียบร้อยแล้ว");
+                  this.loadingHide();
+                  this.$router.push("/lesson");
                 });
-            });
-
-          // if (this.textOrderid == this.position.orderid) {
-
-          // } else if (this.textName == this.position.name) {
-          //   db.collection("Position")
-          //     .where("orderid", "==", this.position.orderid)
-          //     .get()
-          //     .then(doc => {
-          //       if (doc.size > 0) {
-          //         this.notifyRed("กรุณาตรวจสอบข้อมูลช้ำ");
-          //       } else {
-          //         db.collection("Position")
-          //           .doc(this.$route.params.key)
-          //           .set(this.position);
-          //         this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-          //         this.isSeveBtn = true;
-          //         this.$router.push("/lesson");
-          //       }
-          //     });
-          // }
+            }
+          }
         }
       }
     },
