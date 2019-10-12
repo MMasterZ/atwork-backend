@@ -258,7 +258,9 @@ export default {
 
         return;
       } else {
-        // this.isSaveData = true;
+        this.loadingShow();
+
+        this.isSaveData = true;
         //บันทึกหน้าแอดผู้ใช้งาน
         if (this.$route.name == "accountadd") {
           this.userObj.password = this.userObj.tel.substring(8);
@@ -270,7 +272,7 @@ export default {
               //ถ้าเบอร์โทรซ้ำ
               if (doc.size > 0) {
                 this.notifyRed("เบอร์โทรศัพท์นี้มีผู้ใช้งานแล้ว");
-
+                this.loadingHide();
                 this.isSaveData = false;
               } else {
                 //ถ้าเบอร์ไม่ซ้ำให้บันทึกแบบเอาขีดออก
@@ -279,7 +281,6 @@ export default {
                 db.collection("CustomerAccounts")
                   .add(this.userObj)
                   .then(async docAdd => {
-                    this.loadingShow();
                     //ทำการ update Vocabulary / PositionSelected
                     await db
                       .collection("Vocabulary")
@@ -304,6 +305,7 @@ export default {
                             });
                         }
                       });
+
                     await db
                       .collection("Position")
                       .get()
@@ -331,6 +333,7 @@ export default {
                             });
                         }
                       });
+
                     this.loadingHide();
                     this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
                     this.$router.push("/account");

@@ -255,7 +255,8 @@ export default {
         this.notifyRed("มีคำศัพท์ใช้งานอยู่ไม่สามารลบได้");
       } else {
         //Delete data from PositionSelected
-        db.collection("CustomerAccounts")
+        await db
+          .collection("CustomerAccounts")
           .get()
           .then(async userDoc => {
             for (const userData of userDoc.docs) {
@@ -267,13 +268,14 @@ export default {
                 .doc(positionKey)
                 .delete();
             }
-            db.collection("Position")
+
+            await db
+              .collection("Position")
               .doc(positionKey)
-              .delete()
-              .then(() => {
-                this.notifyGreen("ลบข้อมูลเรียบร้อย");
-                this.$router.push("/lesson");
-              });
+              .delete();
+
+            this.notifyGreen("ลบข้อมูลเรียบร้อย");
+            this.$router.push("/lesson");
           });
       }
       this.loadingHide();

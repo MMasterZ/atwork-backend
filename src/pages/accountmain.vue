@@ -277,13 +277,42 @@ export default {
           persistent: true
         })
         .onOk(() => {
+          this.loadingShow("กำลังลบข้อมูล");
           //กดปุ่มตกลง จะเปลี่ยนสถานะเป้น fals
           db.collection("CustomerAccounts")
             .doc(key)
-            .delete()
-            .then(() => {
-              this.loadCustomer();
-              this.notifyGreen("ลบข้อมูลเสร็จสิ้น");
+            .collection("PositionSelected")
+            .get()
+            .then(getPosition => {
+              getPosition.forEach(resultPosition => {
+                db.collection("CustomerAccounts")
+                  .doc(key)
+                  .collection("PositionSelected")
+                  .doc(resultPosition.id)
+                  .delete();
+              });
+
+              db.collection("CustomerAccounts")
+                .doc(key)
+                .collection("Vocabulary")
+                .get()
+                .then(getVocab => {
+                  getVocab.forEach(resultVocab => {
+                    db.collection("CustomerAccounts")
+                      .doc(key)
+                      .collection("Vocabulary")
+                      .doc(resultVocab.id)
+                      .delete();
+                  });
+
+                  db.collection("CustomerAccounts")
+                    .doc(key)
+                    .delete();
+
+                  this.loadingHide();
+                  this.loadCustomer();
+                  this.notifyGreen("ลบข้อมูลเสร็จสิ้น");
+                });
             });
         });
     }
