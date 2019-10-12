@@ -342,6 +342,7 @@ export default {
           .then(doc => {
             if (doc.size > 0) {
               this.notifyRed("กรุณาตรวจสอบข้อมูลช้ำ");
+              this.isSeveBtn = true;
             } else {
               this.loadingShow();
               this.db.expressionData.add(this.obj).then(doc => {
@@ -383,6 +384,7 @@ export default {
             .then(doc => {
               if (doc.size > 0) {
                 this.notifyRed("กรุณาตรวจสอบข้อมูลช้ำ");
+                this.isSeveBtn = true;
               } else {
                 this.isSeveBtn = false;
                 this.loadingShow();
@@ -413,7 +415,6 @@ export default {
                                 });
                               this.$router.push("/expression");
                             });
-                          // this.$router.push("/expression");
                         });
                     } else {
                       this.loadingHide();
@@ -463,7 +464,6 @@ export default {
                             });
                           this.$router.push("/expression");
                         });
-                      // this.$router.push("/expression");
                     });
                 } else {
                   this.db.expressionData.doc(this.$route.params.key).update({
@@ -481,37 +481,6 @@ export default {
                     });
                 }
               }
-              // if (_this.file != "") {
-              //   st.child("audios/expression/" + this.$route.params.key + ".mp3")
-              //     .put(this.file[0])
-              //     .then(() => {
-              //       this.$q.loading.hide();
-              //       this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-              //       st.child(
-              //         "audios/expression/" + this.$route.params.key + ".mp3"
-              //       )
-              //         .getDownloadURL()
-              //         .then(res => {
-              //           this.db.expressionData
-              //             .doc(this.$route.params.key)
-              //             .update({
-              //               url: res
-              //             });
-              //           this.$router.push("/expression");
-              //         });
-
-              //     });
-              // } else {
-              //   this.loadingHide();
-              //   if (_this.isFile == false) {
-              //     this.db.expressionData.doc(this.$route.params.key).update({
-              //       url: ""
-              //     });
-              //     this.isSeveBtn = true;
-              //     this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
-              //     _this.$router.push("/expression");
-              //   }
-              // }
             });
         }
       }
