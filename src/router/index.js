@@ -26,7 +26,7 @@ export const st = storage.ref();
 Vue.mixin({
   data() {
     return {
-      appVersion: "0.1.1",
+      appVersion: "0.1.2",
       SystemAccounts: this.$q.localStorage.getItem("systemAccountData"),
       currentPage: this.$q.localStorage.getItem("currentPage"),
       drawer: true

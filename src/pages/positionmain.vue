@@ -155,13 +155,14 @@ export default {
             ...dataKey,
             ...element.data()
           };
-          this.loadingHide();
+          // this.loadingHide();
           this.prositionList.push(final);
           this.prositionList.sort((a, b) => {
             return a.orderid - b.orderid;
           });
         });
       });
+      this.loadingHide();
     }
   },
   mounted() {

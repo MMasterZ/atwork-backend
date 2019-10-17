@@ -320,6 +320,7 @@ export default {
             this.loadingHide();
           }
         });
+      this.loadingHide();
     },
 
     //******************** โหลดตำแหน่ง   *****************/
