@@ -144,9 +144,10 @@ export default {
             this.data.sort((a, b) => {
               return a.name > b.name ? 1 : -1;
             });
-            this.loadingHide();
+            // this.loadingHide();
           });
         });
+      this.loadingHide();
     },
     // ปุ่มลบข้อมูลสถานประกอบการ แล้วเช็คว่า มีผู้ใช้งานอยู่ไหม ถ้าไม่มีลบได้ ถ้ามีลบไม่ได้
     deleteBtn(key) {

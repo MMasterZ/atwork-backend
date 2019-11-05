@@ -1054,6 +1054,7 @@ export default {
             let datakey = {
               sentencekey: data.id
             };
+
             this.db.dialogData
               .doc(this.dockey)
               .collection("speaker")
@@ -1066,7 +1067,6 @@ export default {
                   url: data2.data().url
                 };
                 let datafinal = { ...datakey, ...speaker, ...data.data() };
-
                 this.sentenceData.push(datafinal);
                 this.sentenceData.sort((a, b) => {
                   return Number(a.orderId) - Number(b.orderId);
@@ -1079,6 +1079,7 @@ export default {
 
     /****** บันทึกบทสนทนา ******/
     async saveDialogBtn() {
+      // console.log(this.dialogData);
       let microtime = await this.loadTime();
       let pageNo = this.$route.params.page;
 
@@ -1195,6 +1196,7 @@ export default {
           });
       } else {
         // เพิ่มข้อมูลใหม่
+
         this.loadingShow();
         this.db.dialogData
           .doc(this.dockey)
@@ -1236,6 +1238,7 @@ export default {
             };
             this.file = "";
             this.loadDialog();
+            this.dialog.speakerKey = this.optionsSpeaker[0].value;
             // ตัวเช็ค Error สั่งปิด
             this.isErrorHasSentenceThai = false;
             this.isErrorHasSentenceEng = false;
@@ -1369,7 +1372,9 @@ export default {
       } else {
         this.tabShow = "dialog";
       }
+
       this.dataDb = this.db.dialogData.doc(this.dockey);
+
       // this.loadDataSituation();
       this.checkSpeakerHas();
       this.loadSpeaker();
