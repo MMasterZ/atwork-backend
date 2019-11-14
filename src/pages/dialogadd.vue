@@ -1118,6 +1118,7 @@ export default {
 
       if (this.isSentenceEditMode) {
         // เข้าแก้ไขข้อมูล
+
         this.loadingShow();
         this.db.dialogData
           .doc(this.dockey)
@@ -1168,6 +1169,8 @@ export default {
                     };
                     this.isFile = false;
                     this.loadDialog();
+                    this.dialog.speakerKey = this.optionsSpeaker[0].value;
+                    this.isSentenceEditMode = false;
                   });
               } else {
                 // ไม่มีเสียงแล้วบันทึก
@@ -1187,7 +1190,9 @@ export default {
                       url: ""
                     };
                     // this.isFile = false;
+                    this.dialog.speakerKey = this.optionsSpeaker[0].value;
                     this.loadDialog();
+                    this.isSentenceEditMode = false;
                   });
               }
             }
