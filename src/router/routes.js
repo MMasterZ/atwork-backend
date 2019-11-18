@@ -50,6 +50,11 @@ const routes = [{
         name: "adminadd"
       },
       {
+        path: "/admin/edit/:key",
+        component: () => import("pages/adminadd.vue"),
+        name: "adminedit"
+      },
+      {
         path: "/user/edit",
         component: () => import("pages/adminadd.vue"),
         name: "useredit"

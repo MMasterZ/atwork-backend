@@ -337,6 +337,7 @@ export default {
       if (this.$route.name == "expressionadd") {
         this.isSeveBtn = false;
         this.db.expressionData
+          .where("positionKey", "==", this.obj.positionKey)
           .where("orderid", "==", this.obj.orderid)
           .get()
           .then(doc => {
