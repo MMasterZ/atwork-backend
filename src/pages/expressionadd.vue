@@ -380,6 +380,7 @@ export default {
       else {
         if (this.textedit != this.obj.orderid) {
           this.db.expressionData
+            .where("positionKey", "==", this.obj.positionKey)
             .where("orderid", "==", this.obj.orderid)
             .get()
             .then(doc => {
@@ -419,12 +420,18 @@ export default {
                         });
                     } else {
                       this.loadingHide();
+                      // console.log(_this.isFile);
                       if (_this.isFile == false) {
+                        // console.log("amm");
                         this.db.expressionData
                           .doc(this.$route.params.key)
                           .update({
                             url: ""
                           });
+                        this.isSeveBtn = true;
+                        this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
+                        _this.$router.push("/expression");
+                      } else {
                         this.isSeveBtn = true;
                         this.notifyGreen("บันทึกข้อมูลเรียบร้อย");
                         _this.$router.push("/expression");
